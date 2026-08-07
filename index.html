@@ -653,6 +653,17 @@
     text-shadow: 0 0 16px rgba(255, 138, 138, 0.7);
   }
 
+  /* 残高がマイナスのとき */
+  #ppValue.minus {
+    color: #ff6b6b;
+    text-shadow: 0 0 14px rgba(255, 107, 107, 0.6);
+  }
+
+  .pp-value-row.minus {
+    border-color: rgba(255, 107, 107, 0.55);
+    background: rgba(60, 8, 12, 0.6);
+  }
+
   .pp-unit {
     font-size: 15px;
     font-weight: 700;
@@ -753,6 +764,14 @@
   }
 
   .preset:active { background: rgba(226, 137, 154, 0.26); color: #fff; }
+
+  .preset.danger {
+    color: #ffb0b0;
+    border-color: rgba(255, 120, 120, 0.45);
+    background: rgba(255, 90, 90, 0.12);
+  }
+
+  .preset.danger:active { background: rgba(255, 90, 90, 0.3); color: #fff; }
 
   .preset.reset {
     margin-left: auto;
@@ -931,6 +950,37 @@
     <button type="button" class="side-tab" id="tabBack">裏面</button>
   </div>
 
+  <!-- ========================= PRIVATE POINT ========================= -->
+  <div class="pp-panel">
+    <div class="pp-head">
+      <div class="pp-title">PRIVATE POINT</div>
+      <div class="pp-sub">個人ポイント残高</div>
+    </div>
+
+    <div class="pp-value-row" id="ppValueRow">
+      <div id="ppValue">100,000</div>
+      <div class="pp-unit">P</div>
+    </div>
+
+    <div class="pp-controls">
+      <input type="number" id="ppInput" step="1"
+             placeholder="ポイント数を入力" inputmode="numeric">
+      <button type="button" class="pp-btn add" id="btnAdd">追加</button>
+      <button type="button" class="pp-btn sub" id="btnSub">消費</button>
+    </div>
+
+    <div class="pp-presets">
+      <button type="button" class="preset" data-amount="1000">1,000</button>
+      <button type="button" class="preset" data-amount="10000">10,000</button>
+      <button type="button" class="preset" data-amount="50000">50,000</button>
+      <button type="button" class="preset" data-amount="100000">100,000</button>
+      <button type="button" class="preset danger" id="btnBottom">−999,999,999 にする</button>
+      <button type="button" class="preset reset" id="btnReset">残高リセット</button>
+    </div>
+
+    <div class="pp-log" id="ppLog">ようこそ、実力至上主義の教室へ。</div>
+  </div>
+
   <!-- ファイル入力本体（transform や overflow の影響を受けないカード外に置く） -->
   <input type="file" id="photoInput" accept="image/*" class="file-input">
 
@@ -965,36 +1015,6 @@
   <div class="export-preview" id="exportPreview">
     <img id="exportImage" alt="書き出した学生証の画像">
     <p id="exportHelp"></p>
-  </div>
-
-  <!-- ========================= PRIVATE POINT ========================= -->
-  <div class="pp-panel">
-    <div class="pp-head">
-      <div class="pp-title">PRIVATE POINT</div>
-      <div class="pp-sub">個人ポイント残高</div>
-    </div>
-
-    <div class="pp-value-row" id="ppValueRow">
-      <div id="ppValue">100,000</div>
-      <div class="pp-unit">P</div>
-    </div>
-
-    <div class="pp-controls">
-      <input type="number" id="ppInput" min="0" step="1"
-             placeholder="ポイント数を入力" inputmode="numeric">
-      <button type="button" class="pp-btn add" id="btnAdd">追加</button>
-      <button type="button" class="pp-btn sub" id="btnSub">消費</button>
-    </div>
-
-    <div class="pp-presets">
-      <button type="button" class="preset" data-amount="1000">1,000</button>
-      <button type="button" class="preset" data-amount="10000">10,000</button>
-      <button type="button" class="preset" data-amount="50000">50,000</button>
-      <button type="button" class="preset" data-amount="100000">100,000</button>
-      <button type="button" class="preset reset" id="btnReset">残高リセット</button>
-    </div>
-
-    <div class="pp-log" id="ppLog">ようこそ、実力至上主義の教室へ。</div>
   </div>
 
   <p class="hint">
@@ -1753,6 +1773,8 @@
      6. PRIVATE POINT（カウンターアニメーション付き）
      ================================================================= */
   var INITIAL_POINT = 100000;
+  var MIN_POINT     = -300000;      // 手入力で下げられる下限
+  var BOTTOM_POINT  = -999999999;   // 「−999,999,999 にする」で入る値
 
   var ppValue    = document.getElementById("ppValue");
   var ppValueRow = document.getElementById("ppValueRow");
@@ -1763,6 +1785,20 @@
   var animId       = null;
 
   function format(n) { return Math.round(n).toLocaleString("ja-JP"); }
+
+  // 桁が増えても枠からはみ出さないよう字の大きさを調整する
+  function showPoint(n) {
+    var text = format(n);
+    ppValue.textContent = text;
+    ppValue.style.fontSize = text.length > 12 ? "22px"
+                           : (text.length > 9 ? "27px" : "32px");
+  }
+
+  function markMinus() {
+    var minus = currentPoint < 0;
+    ppValue.classList.toggle("minus", minus);
+    ppValueRow.classList.toggle("minus", minus);
+  }
 
   function showLog(msg, type) {
     ppLog.textContent = msg;
@@ -1777,10 +1813,13 @@
     if (animId !== null) { cancelAnimationFrame(animId); animId = null; }
 
     var diff = to - from;
-    if (diff === 0) { ppValue.textContent = format(to); return; }
+    if (diff === 0) { showPoint(to); markMinus(); return; }
 
     var duration = Math.min(1100, Math.max(400, 380 + Math.log10(Math.abs(diff) + 1) * 190));
-    var jitter   = Math.max(1, Math.abs(diff) * 0.12);
+    // 揺らぎ幅。桁が大きいときに数値が飛びすぎないよう上限を設ける
+    var jitter   = Math.min(Math.max(1, Math.abs(diff) * 0.12), 60000);
+    var lo       = Math.min(from, to);
+    var hi       = Math.max(from, to);
     var start    = null;
 
     ppValue.classList.remove("up", "down");
@@ -1794,12 +1833,15 @@
 
       if (progress < 1) {
         value += (Math.random() - 0.5) * 2 * jitter * (1 - eased);
-        if (value < 0) { value = 0; }
-        ppValue.textContent = format(value);
+        // 揺らぎで開始値・目標値の外側へ飛び出さないようにする
+        if (value < lo) { value = lo; }
+        if (value > hi) { value = hi; }
+        showPoint(value);
         animId = requestAnimationFrame(frame);
       } else {
         animId = null;
-        ppValue.textContent = format(to);
+        showPoint(to);
+        markMinus();
         setTimeout(function () { ppValue.classList.remove("up", "down"); }, 380);
       }
     }
@@ -1830,8 +1872,9 @@
     var from = currentPoint;
     var to   = currentPoint + sign * amount;
 
-    if (to < 0) {
-      showLog("ポイントが不足しています（残高 " + format(currentPoint) + " P）。", "ng");
+    if (to < MIN_POINT) {
+      showLog("下限の " + format(MIN_POINT) + " P を下回ります（残高 " +
+              format(currentPoint) + " P）。", "ng");
       shake();
       return;
     }
@@ -1863,15 +1906,26 @@
       });
     });
 
-  document.getElementById("btnReset").addEventListener("click", function () {
+  // 値を直接セットする（下限は無視する）
+  function setPoint(to, msg, type) {
     var from = currentPoint;
-    currentPoint = INITIAL_POINT;
-    animatePoint(from, INITIAL_POINT);
-    showLog("残高を初期値 " + format(INITIAL_POINT) + " P に戻しました。", "");
+    currentPoint = to;
+    animatePoint(from, to);
+    showLog(msg, type);
     scheduleSave();
+  }
+
+  document.getElementById("btnReset").addEventListener("click", function () {
+    setPoint(INITIAL_POINT, "残高を初期値 " + format(INITIAL_POINT) + " P に戻しました。", "");
   });
 
-  ppValue.textContent = format(currentPoint);
+  document.getElementById("btnBottom").addEventListener("click", function () {
+    shake();
+    setPoint(BOTTOM_POINT, "残高を " + format(BOTTOM_POINT) + " P にしました。", "ng");
+  });
+
+  showPoint(currentPoint);
+  markMinus();
 
   /* =================================================================
      7. 画面幅に合わせてカードを縮小
@@ -2015,9 +2069,10 @@
 
     renderBarcode(textOf("valId"));
 
-    if (typeof data.point === "number" && isFinite(data.point) && data.point >= 0) {
+    if (typeof data.point === "number" && isFinite(data.point)) {
       currentPoint = Math.round(data.point);
-      ppValue.textContent = format(currentPoint);
+      showPoint(currentPoint);
+      markMinus();
     }
 
     if (typeof data.photo === "string" && data.photo.indexOf("data:") === 0) {
