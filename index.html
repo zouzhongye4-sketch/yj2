@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#eef4fb">
+<title>高度育成高等学校 学生証</title>
+<style>
+  /* ===================================================================
+     全体設定
+     =================================================================== */
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    background: #cfd9e4;
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px 12px 48px;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #dfeaf7 0%, rgba(223,234,247,0) 60%),
+      linear-gradient(180deg, #e9eff6 0%, #cfd9e4 100%);
+    background-attachment: fixed;
+    /* 硬めのゴシック体 */
+    font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3",
+                 "Yu Gothic", "游ゴシック体", YuGothic, "Meiryo", メイリオ,
+                 "Noto Sans JP", "Segoe UI", Arial, sans-serif;
+    font-feature-settings: "palt" 1;
+    color: #17233a;
+  }
+
+  .page-title {
+    font-size: 13px;
+    letter-spacing: 0.28em;
+    color: #5a6b83;
+    font-weight: 700;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+
+  /* カードを画面幅に合わせて縮小するためのラッパ */
+  .card-stage {
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .card-scaler {
+    transform-origin: top center;
+    transition: transform 0.15s ease;
+  }
+
+  /* ===================================================================
+     学生証カード本体（380 x 240）
+     =================================================================== */
+  .id-card {
+    position: relative;
+    width: 380px;
+    height: 240px;
+    border-radius: 14px;
+    padding: 12px 14px 10px;
+    overflow: hidden;
+    /* ごく淡いブルーと白のグラデーション */
+    background:
+      linear-gradient(135deg, #ffffff 0%, #f4f9ff 38%, #e6f0fb 72%, #dbe9f8 100%);
+    border: 1px solid rgba(120, 156, 200, 0.55);
+    box-shadow:
+      0 10px 28px rgba(23, 48, 84, 0.22),
+      0 2px 6px rgba(23, 48, 84, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 斜めの光沢・地紋 */
+  .id-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0) 0px,
+        rgba(255, 255, 255, 0) 9px,
+        rgba(255, 255, 255, 0.5) 10px,
+        rgba(255, 255, 255, 0) 11px
+      );
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* 右下の薄い校章風ウォーターマーク */
+  .id-card::after {
+    content: "";
+    position: absolute;
+    right: -34px;
+    bottom: -46px;
+    width: 176px;
+    height: 176px;
+    border-radius: 50%;
+    border: 12px solid rgba(70, 122, 184, 0.07);
+    background:
+      radial-gradient(circle at 50% 50%, rgba(70, 122, 184, 0.06) 0 34%, rgba(70,122,184,0) 35%);
+    pointer-events: none;
+  }
+
+  /* ---------- ヘッダー ---------- */
+  .card-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .school-name {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    color: #14294a;
+    white-space: nowrap;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  .header-en {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.26em;
+    color: #4c7bb5;
+    white-space: nowrap;
+  }
+
+  .header-line {
+    position: relative;
+    z-index: 2;
+    height: 2px;
+    margin: 5px 0 10px;
+    background: linear-gradient(90deg, #1f5fa8 0%, #3f88d3 55%, rgba(63, 136, 211, 0.15) 100%);
+    border-radius: 2px;
+    flex: 0 0 auto;
+  }
+
+  /* ---------- メインエリア ---------- */
+  .card-main {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 14px;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* 写真エリア（左） */
+  .photo-area {
+    position: relative;
+    width: 104px;
+    height: 130px;
+    flex: 0 0 auto;
+    border: 1px solid #9fb8d4;
+    border-radius: 4px;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        #f7fbff 0px, #f7fbff 6px,
+        #eef5fd 6px, #eef5fd 12px
+      );
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .photo-area:active {
+    border-color: #2f6fb8;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(63, 136, 211, 0.25);
+  }
+
+  .photo-area img {
+    width: 100%;
+    height: 100%;
+    /* アスペクト比を維持して枠いっぱいにカバー */
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .photo-placeholder {
+    text-align: center;
+    padding: 6px;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .photo-placeholder .icon {
+    display: block;
+    width: 34px;
+    height: 28px;
+    margin: 0 auto 8px;
+    border: 2px solid #8fb0d4;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .photo-placeholder .icon::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 3px;
+    height: 11px;
+    background: #8fb0d4;
+    clip-path: polygon(0% 100%, 32% 22%, 55% 100%, 70% 55%, 100% 100%);
+  }
+
+  .photo-placeholder .icon::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8fb0d4;
+  }
+
+  .photo-placeholder .txt {
+    font-size: 9.5px;
+    line-height: 1.5;
+    color: #6d87a6;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+
+  .photo-area.has-image .photo-placeholder { display: none; }
+
+  /* 写真クリア用の小さなボタン */
+  .photo-clear {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(20, 41, 74, 0.62);
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+
+  .photo-area.has-image .photo-clear { display: block; }
+
+  /* 情報エリア（右） */
+  .info-area {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding-top: 2px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .field .label {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #5a7ba3;
+  }
+
+  .field .value {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #14294a;
+    line-height: 1.35;
+    padding: 2px 4px;
+    border-bottom: 1px dashed rgba(90, 123, 163, 0.45);
+    border-radius: 2px;
+    outline: none;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    cursor: text;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .field .value::-webkit-scrollbar { display: none; }
+
+  .field .value:hover {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .field .value:focus {
+    background: #ffffff;
+    border-bottom-color: #2f6fb8;
+    box-shadow: 0 0 0 2px rgba(63, 136, 211, 0.22);
+  }
+
+  .field#field-id .value {
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-size: 14px;
+    letter-spacing: 0.10em;
+  }
+
+  .field#field-name .value {
+    font-size: 17px;
+    letter-spacing: 0.08em;
+  }
+
+  .field#field-birth .value {
+    font-size: 13.5px;
+  }
+
+  /* ---------- フッター（バーコード + 学校長印） ---------- */
+  .card-footer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .barcode-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .barcode {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 26px;
+    padding: 2px 3px;
+    background: #ffffff;
+    border: 1px solid rgba(120, 156, 200, 0.5);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .barcode span {
+    display: block;
+    height: 100%;
+    background: #16233a;
+    flex: 0 0 auto;
+  }
+
+  .barcode-caption {
+    margin-top: 3px;
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-size: 8px;
+    letter-spacing: 0.22em;
+    color: #4a5f7d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .principal {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-bottom: 2px;
+  }
+
+  .principal .txt {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #2b3d5c;
+    white-space: nowrap;
+  }
+
+  .principal .stamp {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border: 1.6px solid #c0392b;
+    border-radius: 50%;
+    color: #c0392b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 8.5px;
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: 0;
+    text-align: center;
+    transform: rotate(-8deg);
+    opacity: 0.85;
+  }
+
+  /* ===================================================================
+     PRIVATE POINT パネル
+     =================================================================== */
+  .pp-panel {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 18px;
+    border-radius: 12px;
+    padding: 14px 14px 16px;
+    background: linear-gradient(160deg, #0e1a2c 0%, #16283f 55%, #0d1826 100%);
+    border: 1px solid rgba(96, 158, 219, 0.4);
+    box-shadow: 0 10px 26px rgba(12, 24, 40, 0.32);
+    color: #d9e8fa;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pp-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(120, 190, 255, 0.05) 0px,
+      rgba(120, 190, 255, 0.05) 1px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 0, 0, 0) 4px
+    );
+    pointer-events: none;
+  }
+
+  .pp-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .pp-title {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    color: #63b0f0;
+  }
+
+  .pp-sub {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: #6f8bab;
+  }
+
+  .pp-value-row {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 6px;
+    padding: 6px 10px 8px;
+    border-radius: 8px;
+    background: rgba(4, 12, 22, 0.55);
+    border: 1px solid rgba(96, 158, 219, 0.22);
+    margin-bottom: 12px;
+  }
+
+  #ppValue {
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #eaf5ff;
+    text-shadow: 0 0 12px rgba(99, 176, 240, 0.55);
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+    line-height: 1.1;
+  }
+
+  #ppValue.counting {
+    color: #ffffff;
+  }
+
+  #ppValue.up {
+    color: #7ef0a8;
+    text-shadow: 0 0 16px rgba(126, 240, 168, 0.7);
+  }
+
+  #ppValue.down {
+    color: #ff8a8a;
+    text-shadow: 0 0 16px rgba(255, 138, 138, 0.7);
+  }
+
+  .pp-unit {
+    font-size: 15px;
+    font-weight: 700;
+    color: #7fb6e6;
+    letter-spacing: 0.06em;
+  }
+
+  .pp-value-row.shake {
+    animation: shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    15% { transform: translateX(-5px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(4px); }
+    75% { transform: translateX(-2px); }
+    90% { transform: translateX(2px); }
+  }
+
+  .pp-controls {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  #ppInput {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 42px;
+    padding: 0 12px;
+    font-size: 16px; /* iOSの自動ズーム防止 */
+    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-weight: 700;
+    text-align: right;
+    color: #eaf5ff;
+    background: rgba(4, 12, 22, 0.7);
+    border: 1px solid rgba(96, 158, 219, 0.35);
+    border-radius: 8px;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+
+  #ppInput::-webkit-outer-spin-button,
+  #ppInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  #ppInput:focus {
+    border-color: #63b0f0;
+    box-shadow: 0 0 0 3px rgba(99, 176, 240, 0.2);
+  }
+
+  #ppInput::placeholder { color: #5c7a9c; font-weight: 400; }
+
+  .pp-btn {
+    flex: 0 0 auto;
+    height: 42px;
+    min-width: 76px;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: #061420;
+    transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    font-family: inherit;
+  }
+
+  .pp-btn:active { transform: translateY(1px) scale(0.98); }
+
+  .pp-btn.add {
+    background: linear-gradient(180deg, #6fe6a2 0%, #34c07a 100%);
+    box-shadow: 0 3px 10px rgba(52, 192, 122, 0.35);
+  }
+
+  .pp-btn.sub {
+    background: linear-gradient(180deg, #ff9e9e 0%, #e8595b 100%);
+    color: #2a0a0c;
+    box-shadow: 0 3px 10px rgba(232, 89, 91, 0.32);
+  }
+
+  .pp-presets {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .preset {
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #9fc8ec;
+    background: rgba(99, 176, 240, 0.08);
+    border: 1px solid rgba(99, 176, 240, 0.3);
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .preset:active {
+    background: rgba(99, 176, 240, 0.28);
+    color: #eaf5ff;
+  }
+
+  .preset.reset {
+    margin-left: auto;
+    color: #93a8c0;
+    border-color: rgba(147, 168, 192, 0.3);
+    background: rgba(147, 168, 192, 0.08);
+  }
+
+  .pp-log {
+    position: relative;
+    margin-top: 10px;
+    min-height: 15px;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    color: #7f9cba;
+    transition: opacity 0.2s ease;
+  }
+
+  .pp-log.ok { color: #7ef0a8; }
+  .pp-log.ng { color: #ff9d9d; }
+
+  .hint {
+    max-width: 380px;
+    width: 100%;
+    margin-top: 16px;
+    font-size: 11px;
+    line-height: 1.9;
+    color: #56687f;
+  }
+
+  .hint b { color: #2f4a6d; }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+  <h1 class="page-title">STUDENT IDENTIFICATION CARD</h1>
+
+  <!-- ============================ 学生証カード ============================ -->
+  <div class="card-stage">
+    <div class="card-scaler" id="cardScaler">
+      <div class="id-card" id="idCard">
+
+        <!-- ヘッダー -->
+        <div class="card-header">
+          <div class="school-name">高度育成高等学校</div>
+          <div class="header-en">STUDENT ID</div>
+        </div>
+        <div class="header-line"></div>
+
+        <!-- メイン -->
+        <div class="card-main">
+
+          <!-- 左：写真エリア -->
+          <div class="photo-area" id="photoArea" role="button" tabindex="0"
+               aria-label="タップして写真を挿入">
+            <div class="photo-placeholder">
+              <span class="icon"></span>
+              <span class="txt">タップして<br>写真を挿入</span>
+            </div>
+            <button type="button" class="photo-clear" id="photoClear"
+                    aria-label="写真を削除">×</button>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" class="visually-hidden">
+
+          <!-- 右：情報エリア -->
+          <div class="info-area">
+            <div class="field" id="field-id">
+              <div class="label">学籍番号 / STUDENT No.</div>
+              <div class="value" id="studentId"
+                   contenteditable="true" spellcheck="false"
+                   inputmode="text" data-default="S01T004651">S01T004651</div>
+            </div>
+
+            <div class="field" id="field-name">
+              <div class="label">氏名 / NAME</div>
+              <div class="value" id="studentName"
+                   contenteditable="true" spellcheck="false"
+                   data-default="綾小路 清隆">綾小路 清隆</div>
+            </div>
+
+            <div class="field" id="field-birth">
+              <div class="label">生年月日 / DATE OF BIRTH</div>
+              <div class="value" id="studentBirth"
+                   contenteditable="true" spellcheck="false"
+                   data-default="2010年10月20日">2010年10月20日</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- フッター -->
+        <div class="card-footer">
+          <div class="barcode-wrap">
+            <div class="barcode" id="barcode" aria-hidden="true"></div>
+            <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
+          </div>
+          <div class="principal">
+            <div class="txt">高度育成高等学校<br>学校長　印</div>
+            <div class="stamp">学校長<br>之印</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= PRIVATE POINT ========================= -->
+  <div class="pp-panel">
+    <div class="pp-head">
+      <div class="pp-title">PRIVATE POINT</div>
+      <div class="pp-sub">個人ポイント残高</div>
+    </div>
+
+    <div class="pp-value-row" id="ppValueRow">
+      <div id="ppValue">100,000</div>
+      <div class="pp-unit">P</div>
+    </div>
+
+    <div class="pp-controls">
+      <input type="number" id="ppInput" min="0" step="1"
+             placeholder="ポイント数を入力" inputmode="numeric">
+      <button type="button" class="pp-btn add" id="btnAdd">追加</button>
+      <button type="button" class="pp-btn sub" id="btnSub">消費</button>
+    </div>
+
+    <div class="pp-presets">
+      <button type="button" class="preset" data-amount="1000">1,000</button>
+      <button type="button" class="preset" data-amount="10000">10,000</button>
+      <button type="button" class="preset" data-amount="50000">50,000</button>
+      <button type="button" class="preset" data-amount="100000">100,000</button>
+      <button type="button" class="preset reset" id="btnReset">残高リセット</button>
+    </div>
+
+    <div class="pp-log" id="ppLog">ようこそ、実力至上主義の教室へ。</div>
+  </div>
+
+  <p class="hint">
+    <b>使い方</b>：写真枠をタップすると端末の写真を選択できます。学籍番号・氏名・生年月日は直接タップして書き換えられます。
+    ポイントは数値を入力して「追加」「消費」を押してください。
+  </p>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =================================================================
+     1. 写真挿入機能
+     ================================================================= */
+  var photoArea  = document.getElementById("photoArea");
+  var photoInput = document.getElementById("photoInput");
+  var photoClear = document.getElementById("photoClear");
+  var photoImg   = null;          // 挿入済み <img>
+  var photoUrl   = null;          // 現在の ObjectURL
+
+  // 写真枠タップ → ファイル選択ダイアログ
+  photoArea.addEventListener("click", function (e) {
+    if (e.target === photoClear) { return; }   // ×ボタンは除外
+    photoInput.click();
+  });
+
+  // キーボード操作（Enter / Space）にも対応
+  photoArea.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      photoInput.click();
+    }
+  });
+
+  photoInput.addEventListener("change", function () {
+    var file = photoInput.files && photoInput.files[0];
+    if (!file) { return; }
+    if (!/^image\//.test(file.type)) {
+      showLog("画像ファイルを選択してください。", "ng");
+      photoInput.value = "";
+      return;
+    }
+    setPhoto(URL.createObjectURL(file));
+    // 同じファイルを再選択しても change が発火するようにリセット
+    photoInput.value = "";
+  });
+
+  function setPhoto(url) {
+    if (!photoImg) {
+      photoImg = document.createElement("img");
+      photoImg.alt = "顔写真";
+      photoArea.insertBefore(photoImg, photoArea.firstChild);
+    }
+    if (photoUrl) { URL.revokeObjectURL(photoUrl); }
+    photoUrl = url;
+    photoImg.src = url;
+    photoArea.classList.add("has-image");
+  }
+
+  photoClear.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (photoImg) {
+      photoArea.removeChild(photoImg);
+      photoImg = null;
+    }
+    if (photoUrl) {
+      URL.revokeObjectURL(photoUrl);
+      photoUrl = null;
+    }
+    photoArea.classList.remove("has-image");
+  });
+
+  /* =================================================================
+     2. テキストの直接編集（contenteditable の制御）
+     ================================================================= */
+  var editables = [
+    document.getElementById("studentId"),
+    document.getElementById("studentName"),
+    document.getElementById("studentBirth")
+  ];
+
+  editables.forEach(function (el) {
+    // 改行を禁止（1行の項目なので Enter で確定＝フォーカスを外す）
+    el.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+
+    // 貼り付けはプレーンテキストのみ許可（書式の混入を防ぐ）
+    el.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData("text");
+      text = String(text).replace(/[\r\n]+/g, " ");
+      document.execCommand("insertText", false, text);
+    });
+
+    // 空欄になったら初期値へ戻す
+    el.addEventListener("blur", function () {
+      if (el.textContent.trim() === "") {
+        el.textContent = el.getAttribute("data-default");
+      }
+      el.scrollLeft = 0;
+    });
+  });
+
+  /* =================================================================
+     3. ダミーバーコード生成（学籍番号に連動）
+     ================================================================= */
+  var barcodeEl      = document.getElementById("barcode");
+  var barcodeCaption = document.getElementById("barcodeCaption");
+  var studentIdEl    = document.getElementById("studentId");
+
+  // 文字列から決定的な擬似乱数シードを作る
+  function hashString(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = (h * 16777619) >>> 0;
+    }
+    return h >>> 0;
+  }
+
+  function makeRandom(seed) {
+    var s = seed || 1;
+    return function () {
+      // xorshift32
+      s ^= s << 13; s >>>= 0;
+      s ^= s >> 17;
+      s ^= s << 5;  s >>>= 0;
+      return s / 4294967296;
+    };
+  }
+
+  function renderBarcode(text) {
+    var rnd = makeRandom(hashString(text || "0"));
+    var html = "";
+    // 開始ガード
+    html += '<span style="width:2px"></span><span style="width:1px;background:transparent"></span>';
+    for (var i = 0; i < 52; i++) {
+      var w = 1 + Math.floor(rnd() * 3);          // 1〜3px の黒バー
+      var gap = 1 + Math.floor(rnd() * 2);        // 1〜2px の隙間
+      html += '<span style="width:' + w + 'px"></span>';
+      html += '<span style="width:' + gap + 'px;background:transparent"></span>';
+    }
+    // 終了ガード
+    html += '<span style="width:2px"></span>';
+    barcodeEl.innerHTML = html;
+
+    var caption = String(text).toUpperCase().replace(/\s+/g, "");
+    barcodeCaption.textContent = caption + " *" + ("0000" + (hashString(text) % 10000)).slice(-4) + "*";
+  }
+
+  renderBarcode(studentIdEl.textContent.trim());
+
+  studentIdEl.addEventListener("input", function () {
+    renderBarcode(studentIdEl.textContent.trim());
+  });
+
+  /* =================================================================
+     4. PRIVATE POINT（カウンターアニメーション付き）
+     ================================================================= */
+  var INITIAL_POINT = 100000;
+
+  var ppValue    = document.getElementById("ppValue");
+  var ppValueRow = document.getElementById("ppValueRow");
+  var ppInput    = document.getElementById("ppInput");
+  var ppLog      = document.getElementById("ppLog");
+  var btnAdd     = document.getElementById("btnAdd");
+  var btnSub     = document.getElementById("btnSub");
+  var btnReset   = document.getElementById("btnReset");
+
+  var currentPoint = INITIAL_POINT;   // 現在の確定値
+  var animId       = null;            // requestAnimationFrame の ID
+
+  function format(n) {
+    return Math.round(n).toLocaleString("ja-JP");
+  }
+
+  function showLog(msg, type) {
+    ppLog.textContent = msg;
+    ppLog.className = "pp-log" + (type ? " " + type : "");
+  }
+
+  // イージング（最後にゆっくり止まる）
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  /**
+   * from → to へカウンターをアニメーションさせる
+   * 前半は数値をシャカシャカと揺らし、後半で目標値に収束させる
+   */
+  function animatePoint(from, to) {
+    if (animId !== null) {
+      cancelAnimationFrame(animId);
+      animId = null;
+    }
+
+    var diff = to - from;
+    if (diff === 0) {
+      ppValue.textContent = format(to);
+      return;
+    }
+
+    // 変化量に応じて演出時間を 400〜1100ms で調整
+    var duration = Math.min(1100, Math.max(400, 380 + Math.log10(Math.abs(diff) + 1) * 190));
+    var start    = null;
+    var jitter   = Math.max(1, Math.abs(diff) * 0.12);   // 揺らぎの振れ幅
+
+    ppValue.classList.remove("up", "down");
+    ppValue.classList.add("counting", diff > 0 ? "up" : "down");
+
+    function frame(timestamp) {
+      if (start === null) { start = timestamp; }
+      var elapsed  = timestamp - start;
+      var progress = Math.min(1, elapsed / duration);
+      var eased    = easeOutCubic(progress);
+
+      var value = from + diff * eased;
+
+      // 「シャカシャカ」感：進行度が進むほど揺らぎが小さくなる
+      if (progress < 1) {
+        var noise = (Math.random() - 0.5) * 2 * jitter * (1 - eased);
+        value += noise;
+        if (value < 0) { value = 0; }
+      } else {
+        value = to;
+      }
+
+      ppValue.textContent = format(value);
+
+      if (progress < 1) {
+        animId = requestAnimationFrame(frame);
+      } else {
+        animId = null;
+        ppValue.textContent = format(to);
+        ppValue.classList.remove("counting");
+        // 少し余韻を残してから色を戻す
+        setTimeout(function () {
+          ppValue.classList.remove("up", "down");
+        }, 380);
+      }
+    }
+
+    animId = requestAnimationFrame(frame);
+  }
+
+  function shake() {
+    ppValueRow.classList.remove("shake");
+    // リフローを強制してアニメーションを再生し直す
+    void ppValueRow.offsetWidth;
+    ppValueRow.classList.add("shake");
+  }
+
+  function readAmount() {
+    var raw = ppInput.value.replace(/[^0-9.-]/g, "");
+    var n = parseFloat(raw);
+    if (!isFinite(n) || n <= 0) { return null; }
+    return Math.floor(Math.abs(n));
+  }
+
+  function changePoint(sign) {
+    var amount = readAmount();
+    if (amount === null) {
+      showLog("有効なポイント数を入力してください。", "ng");
+      shake();
+      return;
+    }
+
+    var from = currentPoint;
+    var to   = currentPoint + sign * amount;
+
+    if (to < 0) {
+      showLog(
+        "ポイントが不足しています（残高 " + format(currentPoint) + " P）。",
+        "ng"
+      );
+      shake();
+      return;
+    }
+
+    currentPoint = to;
+    animatePoint(from, to);
+
+    if (sign > 0) {
+      showLog("+ " + format(amount) + " P を追加しました。", "ok");
+    } else {
+      showLog("- " + format(amount) + " P を消費しました。", "ng");
+    }
+
+    ppInput.value = "";
+    ppInput.blur();
+  }
+
+  btnAdd.addEventListener("click", function () { changePoint(1); });
+  btnSub.addEventListener("click", function () { changePoint(-1); });
+
+  // Enter キーで「追加」を実行
+  ppInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      changePoint(1);
+    }
+  });
+
+  // プリセット金額
+  Array.prototype.forEach.call(
+    document.querySelectorAll(".preset[data-amount]"),
+    function (btn) {
+      btn.addEventListener("click", function () {
+        ppInput.value = btn.getAttribute("data-amount");
+        ppInput.focus();
+        showLog(format(btn.getAttribute("data-amount")) + " P をセットしました。", "");
+      });
+    }
+  );
+
+  // 残高リセット
+  btnReset.addEventListener("click", function () {
+    var from = currentPoint;
+    currentPoint = INITIAL_POINT;
+    animatePoint(from, INITIAL_POINT);
+    showLog("残高を初期値 " + format(INITIAL_POINT) + " P に戻しました。", "");
+  });
+
+  // 初期表示
+  ppValue.textContent = format(currentPoint);
+
+  /* =================================================================
+     5. 画面幅に合わせてカードを縮小（スマホ対応）
+     ================================================================= */
+  var scaler   = document.getElementById("cardScaler");
+  var CARD_W   = 380;
+  var CARD_H   = 240;
+
+  function fitCard() {
+    var stage = scaler.parentNode;
+    var available = stage.clientWidth;
+    if (!available) { return; }
+    var scale = Math.min(1, available / CARD_W);
+
+    scaler.style.transform = "scale(" + scale + ")";
+    scaler.style.width  = CARD_W + "px";
+    // transform ではレイアウト上のサイズが変わらないため、余白をマージンで打ち消す
+    scaler.style.height = (CARD_H * scale) + "px";
+    var sideMargin = (CARD_W * scale - CARD_W) / 2;   // 縮小時は負の値
+    scaler.style.marginLeft  = sideMargin + "px";
+    scaler.style.marginRight = sideMargin + "px";
+  }
+
+  window.addEventListener("resize", fitCard);
+  window.addEventListener("orientationchange", fitCard);
+  window.addEventListener("load", fitCard);
+  fitCard();
+
+})();
+</script>
+</body>
+</html>
