@@ -657,14 +657,65 @@
 
   .hint b { color: #2f4a6d; }
 
-  .visually-hidden {
-    position: absolute;
+  /* ファイル入力は display:none にしない。
+     一部のモバイルブラウザ／WebView では display:none / clip された input の
+     ピッカーが開かないため、「見えないが確実にレイアウトされている」状態にする */
+  .file-input {
+    position: fixed;
+    left: 0;
+    bottom: 0;
     width: 1px;
     height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    opacity: 0;
+    z-index: -1;
   }
+
+  /* カード外の予備の写真選択ボタン（label なので JS なしでも開く） */
+  .photo-tools {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pick-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    background: linear-gradient(180deg, #4a90d9 0%, #2f6fb8 100%);
+    border: 1px solid rgba(31, 95, 168, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(47, 111, 184, 0.28);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .pick-btn:active { transform: translateY(1px); filter: brightness(0.95); }
+
+  .photo-status {
+    flex: 1 1 140px;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #56687f;
+    word-break: break-all;
+  }
+
+  .photo-status.ok { color: #1f7a4d; font-weight: 700; }
+  .photo-status.ng { color: #b8342c; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -686,17 +737,15 @@
         <!-- メイン -->
         <div class="card-main">
 
-          <!-- 左：写真エリア -->
-          <div class="photo-area" id="photoArea" role="button" tabindex="0"
-               aria-label="タップして写真を挿入">
+          <!-- 左：写真エリア（label なので JS が動かない環境でもピッカーが開く） -->
+          <label class="photo-area" id="photoArea" for="photoInput">
             <div class="photo-placeholder">
               <span class="icon"></span>
               <span class="txt">タップして<br>写真を挿入</span>
             </div>
             <button type="button" class="photo-clear" id="photoClear"
                     aria-label="写真を削除">×</button>
-          </div>
-          <input type="file" id="photoInput" accept="image/*" class="visually-hidden">
+          </label>
 
           <!-- 右：情報エリア -->
           <div class="info-area">
@@ -739,6 +788,16 @@
     </div>
   </div>
 
+  <!-- ファイル入力本体。transform や overflow:hidden の影響を受けないよう
+       カードの外（body 直下）に置く -->
+  <input type="file" id="photoInput" accept="image/*" class="file-input">
+
+  <!-- カードの写真枠が反応しない環境向けの予備ボタン + 状態表示 -->
+  <div class="photo-tools">
+    <label class="pick-btn" for="photoInput">写真を選択</label>
+    <span class="photo-status" id="photoStatus">写真は未設定です。</span>
+  </div>
+
   <!-- ========================= PRIVATE POINT ========================= -->
   <div class="pp-panel">
     <div class="pp-head">
@@ -770,8 +829,8 @@
   </div>
 
   <p class="hint">
-    <b>使い方</b>：写真枠をタップすると端末の写真を選択できます。学籍番号・氏名・生年月日は直接タップして書き換えられます。
-    ポイントは数値を入力して「追加」「消費」を押してください。
+    <b>使い方</b>：写真枠、または「写真を選択」ボタンをタップすると端末の写真を選べます（どちらでも同じです）。
+    学籍番号・氏名・生年月日は直接タップして書き換えられます。ポイントは数値を入力して「追加」「消費」を押してください。
   </p>
 
 <script>
@@ -781,62 +840,171 @@
   /* =================================================================
      1. 写真挿入機能
      ================================================================= */
-  var photoArea  = document.getElementById("photoArea");
-  var photoInput = document.getElementById("photoInput");
-  var photoClear = document.getElementById("photoClear");
-  var photoImg   = null;          // 挿入済み <img>
-  var photoUrl   = null;          // 現在の ObjectURL
+  var photoArea   = document.getElementById("photoArea");
+  var photoInput  = document.getElementById("photoInput");
+  var photoClear  = document.getElementById("photoClear");
+  var photoStatus = document.getElementById("photoStatus");
+  var photoImg    = null;         // 挿入済み <img>
+  var photoUrl    = null;         // 現在の ObjectURL（DataURL のときは null）
 
-  // 写真枠タップ → ファイル選択ダイアログ
-  photoArea.addEventListener("click", function (e) {
-    if (e.target === photoClear) { return; }   // ×ボタンは除外
-    photoInput.click();
-  });
+  function setStatus(msg, type) {
+    photoStatus.textContent = msg;
+    photoStatus.className = "photo-status" + (type ? " " + type : "");
+  }
 
-  // キーボード操作（Enter / Space）にも対応
+  /* 写真枠と「写真を選択」ボタンは <label for="photoInput"> なので、
+     JavaScript を介さずブラウザ標準の動作でピッカーが開く。
+     キーボード操作と、label が効かない環境向けの保険だけ JS で補う。 */
   photoArea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      photoInput.click();
+      openPicker();
     }
+  });
+
+  function openPicker() {
+    try {
+      photoInput.click();
+    } catch (err) {
+      setStatus("写真選択を開けませんでした：" + err.message, "ng");
+    }
+  }
+
+  // ピッカーが開いたかどうかを画面上で確認できるようにする
+  photoInput.addEventListener("click", function () {
+    setStatus("写真選択を開いています…", "");
   });
 
   photoInput.addEventListener("change", function () {
     var file = photoInput.files && photoInput.files[0];
-    if (!file) { return; }
-    if (!/^image\//.test(file.type)) {
-      showLog("画像ファイルを選択してください。", "ng");
+    if (!file) {
+      setStatus("ファイルが選択されませんでした。", "ng");
+      return;
+    }
+
+    // HEIC など type が空で返る端末があるため、拡張子でも判定する
+    var looksLikeImage =
+      /^image\//i.test(file.type || "") ||
+      /\.(jpe?g|png|gif|webp|bmp|heic|heif|avif)$/i.test(file.name || "");
+
+    if (!looksLikeImage) {
+      setStatus("画像ファイルを選択してください（" + (file.type || "種別不明") + "）", "ng");
       photoInput.value = "";
       return;
     }
-    setPhoto(URL.createObjectURL(file));
+
+    setStatus(
+      "読み込み中… " + (file.name || "image") +
+      "（" + Math.max(1, Math.round(file.size / 1024)) + " KB）",
+      ""
+    );
+    loadFile(file);
+
     // 同じファイルを再選択しても change が発火するようにリセット
     photoInput.value = "";
   });
 
-  function setPhoto(url) {
-    if (!photoImg) {
-      photoImg = document.createElement("img");
-      photoImg.alt = "顔写真";
-      photoArea.insertBefore(photoImg, photoArea.firstChild);
+  /* 1) ObjectURL で表示 → 2) 失敗したら FileReader(DataURL) で再挑戦
+     という二段構えにして、どちらかが使えない環境でも表示できるようにする */
+  function loadFile(file) {
+    var url = null;
+    try {
+      url = URL.createObjectURL(file);
+    } catch (err) {
+      url = null;
     }
-    if (photoUrl) { URL.revokeObjectURL(photoUrl); }
-    photoUrl = url;
-    photoImg.src = url;
-    photoArea.classList.add("has-image");
+
+    if (url) {
+      applyPhoto(url, true, file, function () {
+        URL.revokeObjectURL(url);
+        loadWithFileReader(file);
+      });
+    } else {
+      loadWithFileReader(file);
+    }
   }
 
-  photoClear.addEventListener("click", function (e) {
-    e.stopPropagation();
-    if (photoImg) {
-      photoArea.removeChild(photoImg);
-      photoImg = null;
+  function loadWithFileReader(file) {
+    if (typeof FileReader === "undefined") {
+      setStatus("この環境では画像を読み込めませんでした。", "ng");
+      return;
     }
+    var reader = new FileReader();
+    reader.onload = function () {
+      applyPhoto(reader.result, false, file, function () {
+        setStatus("画像を表示できませんでした（形式が未対応の可能性）。", "ng");
+      });
+    };
+    reader.onerror = function () {
+      setStatus("画像の読み込みに失敗しました。", "ng");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * 画像をカードに反映する
+   * @param {string}   src      画像の URL / DataURL
+   * @param {boolean}  isObject ObjectURL かどうか（解放が必要か）
+   * @param {File}     file     選択されたファイル（表示用）
+   * @param {Function} onFail   表示に失敗したときのフォールバック
+   */
+  function applyPhoto(src, isObject, file, onFail) {
+    var img = document.createElement("img");
+    img.alt = "顔写真";
+
+    img.onload = function () {
+      if (photoImg && photoImg.parentNode) {
+        photoImg.parentNode.removeChild(photoImg);
+      }
+      if (photoUrl) { URL.revokeObjectURL(photoUrl); }
+
+      photoImg = img;
+      photoUrl = isObject ? src : null;
+      photoArea.insertBefore(img, photoArea.firstChild);
+      photoArea.classList.add("has-image");
+
+      setStatus(
+        "写真を挿入しました：" + (file && file.name ? file.name : "image") +
+        "（" + img.naturalWidth + "×" + img.naturalHeight + "）",
+        "ok"
+      );
+    };
+
+    img.onerror = function () {
+      if (typeof onFail === "function") { onFail(); }
+    };
+
+    img.src = src;
+  }
+
+  // ×ボタン：label の中にあるのでピッカーが開かないよう既定動作を止める
+  photoClear.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (photoImg && photoImg.parentNode) {
+      photoImg.parentNode.removeChild(photoImg);
+    }
+    photoImg = null;
     if (photoUrl) {
       URL.revokeObjectURL(photoUrl);
       photoUrl = null;
     }
     photoArea.classList.remove("has-image");
+    setStatus("写真を削除しました。", "");
+  });
+
+  // PC 向け：写真枠へのドラッグ＆ドロップにも対応
+  ["dragenter", "dragover"].forEach(function (type) {
+    photoArea.addEventListener(type, function (e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    });
+  });
+
+  photoArea.addEventListener("drop", function (e) {
+    e.preventDefault();
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) { loadFile(file); }
   });
 
   /* =================================================================
