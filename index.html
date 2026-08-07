@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#7c2230">
-<title>高度育成高等学校 学生証</title>
+<title>東京都高度育成高等学校 学生証</title>
 
 <!-- ===== ホーム画面アプリ（PWA）としてインストールするための設定 ===== -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -138,7 +138,7 @@
     top: 52px;
     width: 156px;
     height: 156px;
-    opacity: 0.05;
+    opacity: 0.07;
     pointer-events: none;
   }
 
@@ -316,7 +316,7 @@
     position: absolute;
     left: 14px;
     top: 182px;
-    width: 224px;
+    width: 186px;
     height: 26px;
     display: flex;
     align-items: stretch;
@@ -338,7 +338,7 @@
     position: absolute;
     left: 14px;
     top: 210px;
-    width: 224px;
+    width: 186px;
     height: 12px;
     line-height: 12px;
     font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
@@ -372,11 +372,11 @@
 
   .stamp-label {
     position: absolute;
-    left: 224px;
+    left: 202px;
     top: 184px;
-    width: 88px;
+    width: 110px;
     height: 26px;
-    font-size: 8px;
+    font-size: 7.5px;
     font-weight: 700;
     line-height: 13px;
     color: #4a3438;
@@ -871,7 +871,7 @@
           <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
 
           <!-- 学校長印 -->
-          <div class="stamp-label">高度育成高等学校<br>学校長　印</div>
+          <div class="stamp-label">東京都高度育成高等学校<br>学校長　印</div>
           <div class="stamp" id="stampEl">坂<br>柳</div>
         </div>
 
@@ -1201,64 +1201,130 @@
   /* =================================================================
      4. 校章（表面の透かし・裏面・書き出しで同じ描画関数を使う）
      ================================================================= */
-  function drawCrest(ctx, cx, cy, s, color, lineScale, ribbonFill) {
+  /**
+   * 校章を描く（画面の透かし・裏面・書き出し画像・アプリアイコンで共用）
+   * 四分割の盾＋月桂樹＋中央のモノグラム＋二段のリボン、という構成。
+   *
+   * @param {number} s         盾の横幅
+   * @param {string} color     線の色
+   * @param {number} lineScale 線幅の倍率
+   * @param {string} bgFill    盾の地色（下の線を隠すために使う）
+   */
+  function drawCrest(ctx, cx, cy, s, color, lineScale, bgFill, noHatch) {
     var lw = (lineScale || 1);
+    var halfW = s / 2;
+    var top = cy - s * 0.56;
+    var shoulder = cy + s * 0.12;
+    var tip = cy + s * 0.68;
+    var midY = cy - s * 0.02;      // 四分割の横の境目
+
     ctx.save();
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
 
-    // --- 盾 ---
     function shieldPath(inset) {
-      var w = s / 2 - inset;
-      var top = cy - s * 0.58 + inset;
-      var shoulder = cy + s * 0.10;
-      var tip = cy + s * 0.66 - inset;
+      var w = halfW - inset;
       ctx.beginPath();
-      ctx.moveTo(cx - w, top);
-      ctx.lineTo(cx + w, top);
+      ctx.moveTo(cx - w, top + inset);
+      ctx.lineTo(cx + w, top + inset);
       ctx.lineTo(cx + w, shoulder);
-      ctx.quadraticCurveTo(cx + w, tip - s * 0.10, cx, tip);
-      ctx.quadraticCurveTo(cx - w, tip - s * 0.10, cx - w, shoulder);
+      ctx.quadraticCurveTo(cx + w, tip - inset - s * 0.10, cx, tip - inset);
+      ctx.quadraticCurveTo(cx - w, tip - inset - s * 0.10, cx - w, shoulder);
       ctx.closePath();
     }
 
-    ctx.lineWidth = 2.4 * lw;
+    // --- 盾の地色 ---
+    if (bgFill) {
+      ctx.save();
+      ctx.fillStyle = bgFill;
+      shieldPath(0);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // --- 四分割（左上と右下に斜線を敷く） ---
+    function hatch(x0, y0, x1, y1) {
+      ctx.save();
+      shieldPath(s * 0.05);
+      ctx.clip();
+      ctx.beginPath();
+      ctx.rect(x0, y0, x1 - x0, y1 - y0);
+      ctx.clip();
+
+      ctx.globalAlpha = 0.30;
+      ctx.lineWidth = 0.9 * lw;
+      var h = y1 - y0;
+      for (var t = -h; t < (x1 - x0) + h; t += s * 0.052) {
+        ctx.beginPath();
+        ctx.moveTo(x0 + t, y1);
+        ctx.lineTo(x0 + t + h, y0);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    if (!noHatch) {
+      hatch(cx - halfW, top, cx, midY);         // 左上
+      hatch(cx, midY, cx + halfW, tip);         // 右下
+    }
+
+    // 四分割の境目
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = 0.9 * lw;
+    shieldPath(s * 0.05);
+    ctx.clip();
+    ctx.beginPath();
+    ctx.moveTo(cx, top);
+    ctx.lineTo(cx, tip);
+    ctx.moveTo(cx - halfW, midY);
+    ctx.lineTo(cx + halfW, midY);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 盾の輪郭（外の太線と内の細線） ---
+    ctx.lineWidth = 2.6 * lw;
     shieldPath(0);
     ctx.stroke();
 
     ctx.lineWidth = 1.0 * lw;
-    shieldPath(s * 0.045);
+    shieldPath(s * 0.05);
     ctx.stroke();
 
-    // --- 月桂樹（左右対称の枝と葉） ---
+    // --- 月桂樹（下から左右に立ち上がる枝） ---
     function laurel(dir) {
       ctx.save();
-      ctx.translate(cx, cy + s * 0.06);
+      ctx.translate(cx, cy + s * 0.14);
       ctx.scale(dir, 1);
 
-      ctx.lineWidth = 1.2 * lw;
+      var p0x = s * 0.02,  p0y = s * 0.30;
+      var p1x = s * 0.44,  p1y = s * 0.20;
+      var p2x = s * 0.40,  p2y = -s * 0.26;
+
+      ctx.lineWidth = 1.3 * lw;
       ctx.beginPath();
-      ctx.moveTo(s * 0.06, s * 0.30);
-      ctx.quadraticCurveTo(s * 0.34, s * 0.18, s * 0.30, -s * 0.24);
+      ctx.moveTo(p0x, p0y);
+      ctx.quadraticCurveTo(p1x, p1y, p2x, p2y);
       ctx.stroke();
 
-      for (var i = 0; i < 6; i++) {
-        var t = i / 5;
-        // 枝上の位置（二次ベジエ）
-        var p0x = s * 0.06,  p0y = s * 0.30;
-        var p1x = s * 0.34,  p1y = s * 0.18;
-        var p2x = s * 0.30,  p2y = -s * 0.24;
+      for (var i = 0; i < 7; i++) {
+        var t = i / 6;
         var mt = 1 - t;
         var px = mt * mt * p0x + 2 * mt * t * p1x + t * t * p2x;
         var py = mt * mt * p0y + 2 * mt * t * p1y + t * t * p2y;
 
+        // 枝の接線に対して外向きに葉を付ける
+        var tx = 2 * mt * (p1x - p0x) + 2 * t * (p2x - p1x);
+        var ty = 2 * mt * (p1y - p0y) + 2 * t * (p2y - p1y);
+        var ang = Math.atan2(ty, tx);
+
         ctx.save();
         ctx.translate(px, py);
-        ctx.rotate(-0.9 + t * 0.5);
+        ctx.rotate(ang - 0.5);
         ctx.beginPath();
-        ctx.ellipse(0, -s * 0.045, s * 0.026, s * 0.055, 0, 0, Math.PI * 2);
+        ctx.ellipse(s * 0.050, 0, s * 0.052, s * 0.023, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -1268,56 +1334,109 @@
     laurel(1);
     laurel(-1);
 
-    // --- 中央の文字 ---
-    ctx.textAlign = "center";
-    ctx.textBaseline = "alphabetic";
-    ctx.font = "bold " + Math.round(s * 0.30) + "px " + FONT_FAMILY;
-    ctx.fillText("育", cx, cy + s * 0.13);
+    // --- 中央のモノグラム（筆記体風の飾り文字） ---
+    ctx.save();
+    ctx.translate(cx, cy - s * 0.05);
+    ctx.scale(s * 0.80, s * 0.80);         // 以下は盾の幅を 1 とした比率で書く
+    ctx.lineWidth = 0.078 * lw;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = color;
 
-    // --- 下部のリボン ---
-    var ry = cy + s * 0.50;
-    var rw = s * 0.60;
-    var rh = s * 0.13;
+    // 大きな左の輪
+    ctx.beginPath();
+    ctx.moveTo(0.13, -0.13);
+    ctx.bezierCurveTo(-0.02, -0.33, -0.33, -0.30, -0.33, -0.08);
+    ctx.bezierCurveTo(-0.33, 0.10, -0.11, 0.15, 0.02, 0.05);
+    ctx.stroke();
+
+    // 右上から左下へ抜ける主画
+    ctx.beginPath();
+    ctx.moveTo(0.30, -0.35);
+    ctx.bezierCurveTo(0.36, -0.26, 0.29, -0.20, 0.19, -0.13);
+    ctx.bezierCurveTo(0.03, -0.02, -0.05, 0.09, -0.02, 0.20);
+    ctx.stroke();
+
+    // 下の巻き
+    ctx.beginPath();
+    ctx.moveTo(-0.02, 0.20);
+    ctx.bezierCurveTo(0.05, 0.33, 0.25, 0.30, 0.25, 0.16);
+    ctx.bezierCurveTo(0.25, 0.06, 0.13, 0.04, 0.06, 0.12);
+    ctx.bezierCurveTo(-0.02, 0.21, -0.03, 0.33, 0.03, 0.40);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- 下部のリボン（燕尾＋二段の英字） ---
+    var ry  = cy + s * 0.56;
+    var rw  = s * 0.52;
+    var rh  = s * 0.20;
+    var tw  = s * 0.16;    // 燕尾の長さ
 
     ctx.lineWidth = 1.2 * lw;
+
+    // 左右の燕尾
+    [-1, 1].forEach(function (dir) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx + dir * rw, ry - rh * 0.42);
+      ctx.lineTo(cx + dir * (rw + tw), ry - rh * 0.62);
+      ctx.lineTo(cx + dir * (rw + tw * 0.62), ry - rh * 0.08);
+      ctx.lineTo(cx + dir * (rw + tw), ry + rh * 0.42);
+      ctx.lineTo(cx + dir * rw, ry + rh * 0.30);
+      ctx.closePath();
+      if (bgFill) { ctx.fillStyle = bgFill; ctx.fill(); }
+      ctx.strokeStyle = color;
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // 帯本体
     ctx.beginPath();
     ctx.moveTo(cx - rw, ry - rh / 2);
-    ctx.quadraticCurveTo(cx, ry - rh, cx + rw, ry - rh / 2);
+    ctx.quadraticCurveTo(cx, ry - rh * 0.86, cx + rw, ry - rh / 2);
     ctx.lineTo(cx + rw, ry + rh / 2);
-    ctx.quadraticCurveTo(cx, ry, cx - rw, ry + rh / 2);
+    ctx.quadraticCurveTo(cx, ry + rh * 0.14, cx - rw, ry + rh / 2);
     ctx.closePath();
-    if (ribbonFill) {
-      // 盾の線がリボンの文字に重ならないよう、帯の内側を塗りつぶす
+    if (bgFill) {
       ctx.save();
-      ctx.fillStyle = ribbonFill;
+      ctx.fillStyle = bgFill;
       ctx.fill();
       ctx.restore();
     }
     ctx.stroke();
-    ctx.fillStyle = color;
 
-    // リボンの内側に収まるよう文字サイズを計算する
-    var banner = "TOKYO METROPOLITAN ADVANCED NURTURING HIGH SCHOOL";
-    ctx.font = "600 10px " + FONT_FAMILY;
-    var w10 = ctx.measureText(banner).width || 1;
-    var fs = Math.max(2.2, 10 * (rw * 1.62) / w10);
-    ctx.font = "600 " + fs + "px " + FONT_FAMILY;
-    ctx.fillText(banner, cx, ry + fs * 0.36);
+    // 二段の校名（リボン幅に収まるよう字の大きさを決める）
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+
+    var lines = ["The Tokyo Metropolitan", "Advanced Nurturing High School"];
+    var serif = 'Georgia, "Times New Roman", "Hiragino Mincho ProN", serif';
+
+    ctx.font = "600 10px " + serif;
+    var widest = Math.max(ctx.measureText(lines[0]).width,
+                          ctx.measureText(lines[1]).width) || 1;
+    var fs = Math.max(2.2, 10 * (rw * 1.74) / widest);
+
+    ctx.font = "600 " + fs + "px " + serif;
+    ctx.fillText(lines[0], cx, ry - rh * 0.06);
+    ctx.fillText(lines[1], cx, ry + rh * 0.30);
 
     ctx.restore();
   }
 
   // 画面用：表面の透かしと裏面の校章を canvas で描いておく
-  function paintCrestCanvas(canvas, cssSize, color, ribbonFill) {
+  function paintCrestCanvas(canvas, cssSize, color, bgFill, noHatch) {
     var ratio = Math.min(3, window.devicePixelRatio || 1) * 2;
     canvas.width  = Math.round(cssSize * ratio);
     canvas.height = Math.round(cssSize * ratio);
     var ctx = canvas.getContext("2d");
     ctx.scale(ratio, ratio);
-    drawCrest(ctx, cssSize / 2, cssSize / 2, cssSize * 0.74, color, 1, ribbonFill);
+    drawCrest(ctx, cssSize / 2, cssSize / 2, cssSize * 0.70, color, 1, bgFill, noHatch);
   }
 
-  paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff");
+  // 透かしは文字の読みやすさを優先して斜線を省く
+  paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff", true);
   paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", "#7a2130");
 
   /* =================================================================
@@ -1764,8 +1883,8 @@
     // 校章の透かし（DOM 上の canvas と同じ位置・大きさ）
     var wmR = rectOf(document.getElementById("crestWatermark"), cardFront);
     ctx.save();
-    ctx.globalAlpha = 0.05;
-    drawCrest(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1, wmR.w * 0.74, "#7c2230", 1, "#ffffff");
+    ctx.globalAlpha = 0.07;
+    drawCrest(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1, wmR.w * 0.70, "#7c2230", 1, "#ffffff", true);
     ctx.restore();
 
     // ヘッダーの帯
@@ -1867,7 +1986,7 @@
     var lblEl = document.querySelector(".stamp-label");
     var lblR  = rectOf(lblEl, cardFront);
     var lblS  = styleOf(lblEl);
-    ["高度育成高等学校", "学校長　印"].forEach(function (line, idx) {
+    ["東京都高度育成高等学校", "学校長　印"].forEach(function (line, idx) {
       drawText(ctx, line, lblR.x + lblR.w + 1, lblR.y + 1 + 13 * idx + 9.5, {
         size: lblS.size, weight: lblS.weight, color: lblS.color, align: "right"
       });
@@ -1925,7 +2044,7 @@
     ctx.fillRect(0, 0, CARD_W, CARD_H);
 
     var cR = rectOf(document.getElementById("crestBack"), cardBack);
-    drawCrest(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1, cR.w * 0.74, "#ffffff", 1, "#7a2130");
+    drawCrest(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1, cR.w * 0.70, "#ffffff", 1, "#7a2130");
 
     var schoolEl = document.querySelector(".back-school");
     var schoolR  = rectOf(schoolEl, cardBack);
@@ -2060,7 +2179,7 @@
     var manifest = {
       name: "東京都高度育成高等学校 学生証",
       short_name: "学生証",
-      description: "高度育成高等学校の学生証",
+      description: "東京都高度育成高等学校の学生証",
       start_url: location.href.split("#")[0],
       scope: location.href.replace(/[^/]*$/, ""),
       display: "standalone",
