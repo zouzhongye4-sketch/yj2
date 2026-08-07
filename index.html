@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#eef4fb">
 <title>高度育成高等学校 学生証</title>
+
+<!-- ===== ホーム画面アプリ（PWA）としてインストールするための設定 ===== -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="学生証">
+<meta name="application-name" content="学生証">
+<meta name="description" content="高度育成高等学校の学生証">
+<!-- マニフェストとアイコンは JS から動的に生成して設定（1ファイル完結のため） -->
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleIcon">
+<link rel="icon" id="faviconLink">
 <style>
   /* ===================================================================
      全体設定
@@ -716,6 +728,76 @@
 
   .photo-status.ok { color: #1f7a4d; font-weight: 700; }
   .photo-status.ng { color: #b8342c; font-weight: 700; }
+
+  /* ホーム画面から起動（standalone）したときはノッチ／ホームバーを避ける */
+  @media all and (display-mode: standalone) {
+    body {
+      padding-top: calc(24px + env(safe-area-inset-top));
+      padding-bottom: calc(48px + env(safe-area-inset-bottom));
+    }
+    .install-note { display: none !important; }
+  }
+
+  .install-note {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 14px;
+    padding: 11px 13px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(120, 156, 200, 0.45);
+    font-size: 11px;
+    line-height: 1.85;
+    color: #46586f;
+  }
+
+  .install-note b {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    color: #1f5fa8;
+  }
+
+  .install-note code {
+    font-family: inherit;
+    padding: 0 4px;
+    border-radius: 3px;
+    background: rgba(47, 111, 184, 0.1);
+    color: #1f5fa8;
+    font-weight: 700;
+  }
+
+  .footer-tools {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .save-state {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: #6b7d94;
+  }
+
+  .link-btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #6b7d94;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(120, 156, 200, 0.5);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .link-btn:active { background: rgba(120, 156, 200, 0.2); }
 </style>
 </head>
 <body>
@@ -831,7 +913,20 @@
   <p class="hint">
     <b>使い方</b>：写真枠、または「写真を選択」ボタンをタップすると端末の写真を選べます（どちらでも同じです）。
     学籍番号・氏名・生年月日は直接タップして書き換えられます。ポイントは数値を入力して「追加」「消費」を押してください。
+    入力した内容と写真はこの端末に自動保存され、次に開いたときも復元されます。
   </p>
+
+  <div class="install-note" id="installNote">
+    <b>アプリとしてホーム画面に置く</b>
+    iPhone（Safari）：共有ボタン <code>&#x2191;</code> →「ホーム画面に追加」<br>
+    Android（Chrome）：メニュー <code>&#8942;</code> →「アプリをインストール」または「ホーム画面に追加」<br>
+    追加後はアドレスバーのない全画面で起動します。
+  </div>
+
+  <div class="footer-tools">
+    <span class="save-state" id="saveState">保存先：この端末（ブラウザ内）</span>
+    <button type="button" class="link-btn" id="btnClearData">保存データを消去</button>
+  </div>
 
 <script>
 (function () {
@@ -948,7 +1043,7 @@
    * @param {File}     file     選択されたファイル（表示用）
    * @param {Function} onFail   表示に失敗したときのフォールバック
    */
-  function applyPhoto(src, isObject, file, onFail) {
+  function applyPhoto(src, isObject, file, onFail, quiet) {
     var img = document.createElement("img");
     img.alt = "顔写真";
 
@@ -963,11 +1058,18 @@
       photoArea.insertBefore(img, photoArea.firstChild);
       photoArea.classList.add("has-image");
 
-      setStatus(
-        "写真を挿入しました：" + (file && file.name ? file.name : "image") +
-        "（" + img.naturalWidth + "×" + img.naturalHeight + "）",
-        "ok"
-      );
+      if (quiet) {
+        // 保存データからの復元時
+        setStatus("保存された写真を復元しました。", "");
+      } else {
+        setStatus(
+          "写真を挿入しました：" + (file && file.name ? file.name : "image") +
+          "（" + img.naturalWidth + "×" + img.naturalHeight + "）",
+          "ok"
+        );
+        // 端末に保存（保存用に縮小したものを使う）
+        savePhotoFromImage(img);
+      }
     };
 
     img.onerror = function () {
@@ -991,6 +1093,8 @@
     }
     photoArea.classList.remove("has-image");
     setStatus("写真を削除しました。", "");
+    photoData = null;
+    scheduleSave();
   });
 
   // PC 向け：写真枠へのドラッグ＆ドロップにも対応
@@ -1033,12 +1137,16 @@
       document.execCommand("insertText", false, text);
     });
 
+    // 入力のたびに保存（連打に備えて遅延書き込み）
+    el.addEventListener("input", scheduleSave);
+
     // 空欄になったら初期値へ戻す
     el.addEventListener("blur", function () {
       if (el.textContent.trim() === "") {
         el.textContent = el.getAttribute("data-default");
       }
       el.scrollLeft = 0;
+      scheduleSave();
     });
   });
 
@@ -1220,6 +1328,7 @@
 
     currentPoint = to;
     animatePoint(from, to);
+    scheduleSave();
 
     if (sign > 0) {
       showLog("+ " + format(amount) + " P を追加しました。", "ok");
@@ -1260,6 +1369,7 @@
     currentPoint = INITIAL_POINT;
     animatePoint(from, INITIAL_POINT);
     showLog("残高を初期値 " + format(INITIAL_POINT) + " P に戻しました。", "");
+    scheduleSave();
   });
 
   // 初期表示
@@ -1291,6 +1401,243 @@
   window.addEventListener("orientationchange", fitCard);
   window.addEventListener("load", fitCard);
   fitCard();
+
+  /* =================================================================
+     6. 端末への自動保存（ローカルアプリとして使うための永続化）
+        - 保存先は localStorage（この端末・このブラウザの中だけ）
+        - 写真は保存用に縮小してから DataURL 化する
+     ================================================================= */
+  var STORAGE_KEY = "kodoikusei-student-id-v1";
+  var saveTimer   = null;
+  var photoData   = null;   // 保存用に縮小した写真の DataURL
+  var saveStateEl = document.getElementById("saveState");
+  var btnClear    = document.getElementById("btnClearData");
+
+  var storageAvailable = (function () {
+    try {
+      var k = "__storage_test__";
+      localStorage.setItem(k, "1");
+      localStorage.removeItem(k);
+      return true;
+    } catch (err) {
+      return false;   // プライベートブラウズや保存が禁止された環境
+    }
+  })();
+
+  function setSaveState(msg) {
+    if (saveStateEl) { saveStateEl.textContent = msg; }
+  }
+
+  function scheduleSave() {
+    if (!storageAvailable) { return; }
+    if (saveTimer !== null) { clearTimeout(saveTimer); }
+    saveTimer = setTimeout(saveAll, 350);
+  }
+
+  function saveAll() {
+    saveTimer = null;
+    if (!storageAvailable) { return; }
+
+    var data = {
+      sid:   document.getElementById("studentId").textContent.trim(),
+      name:  document.getElementById("studentName").textContent.trim(),
+      birth: document.getElementById("studentBirth").textContent.trim(),
+      point: currentPoint,
+      photo: photoData
+    };
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      setSaveState("保存済み（この端末に自動保存）");
+    } catch (err) {
+      // 容量超過。写真を諦めて文字情報だけでも残す
+      data.photo = null;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        setSaveState("文字情報のみ保存しました（写真は容量超過）");
+      } catch (err2) {
+        setSaveState("保存できませんでした（保存領域が使えません）");
+      }
+    }
+  }
+
+  /* 保存用に写真を縮小する（長辺 720px / JPEG）。
+     端末の写真をそのまま保存すると数 MB になり保存領域を超えるため */
+  function savePhotoFromImage(img) {
+    if (!storageAvailable) { return; }
+    try {
+      var MAX_W = 576, MAX_H = 720;
+      var w = img.naturalWidth  || img.width;
+      var h = img.naturalHeight || img.height;
+      var scale = Math.min(1, MAX_W / w, MAX_H / h);
+      var cw = Math.max(1, Math.round(w * scale));
+      var ch = Math.max(1, Math.round(h * scale));
+
+      var canvas = document.createElement("canvas");
+      canvas.width  = cw;
+      canvas.height = ch;
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.drawImage(img, 0, 0, cw, ch);
+
+      photoData = canvas.toDataURL("image/jpeg", 0.82);
+    } catch (err) {
+      photoData = null;   // canvas が使えない場合は写真の保存だけ諦める
+    }
+    scheduleSave();
+  }
+
+  function restoreAll() {
+    if (!storageAvailable) {
+      setSaveState("この環境では保存できません（プライベートモード等）");
+      return;
+    }
+
+    var raw = null;
+    try {
+      raw = localStorage.getItem(STORAGE_KEY);
+    } catch (err) {
+      raw = null;
+    }
+    if (!raw) {
+      setSaveState("保存先：この端末（ブラウザ内）");
+      return;
+    }
+
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch (err) {
+      return;
+    }
+    if (!data || typeof data !== "object") { return; }
+
+    if (data.sid)   { document.getElementById("studentId").textContent    = data.sid; }
+    if (data.name)  { document.getElementById("studentName").textContent  = data.name; }
+    if (data.birth) { document.getElementById("studentBirth").textContent = data.birth; }
+
+    renderBarcode(document.getElementById("studentId").textContent.trim());
+
+    if (typeof data.point === "number" && isFinite(data.point) && data.point >= 0) {
+      currentPoint = Math.round(data.point);
+      ppValue.textContent = format(currentPoint);
+    }
+
+    if (typeof data.photo === "string" && data.photo.indexOf("data:") === 0) {
+      photoData = data.photo;
+      applyPhoto(data.photo, false, null, function () { photoData = null; }, true);
+    }
+
+    setSaveState("前回の内容を復元しました");
+  }
+
+  // ページを閉じる直前にも確実に書き込む
+  window.addEventListener("pagehide", function () {
+    if (saveTimer !== null) {
+      clearTimeout(saveTimer);
+      saveAll();
+    }
+  });
+
+  btnClear.addEventListener("click", function () {
+    if (!window.confirm("この端末に保存した内容（写真・氏名・ポイント）を消去します。よろしいですか？")) {
+      return;
+    }
+    try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* 無視 */ }
+
+    document.getElementById("studentId").textContent    = "S01T004651";
+    document.getElementById("studentName").textContent  = "綾小路 清隆";
+    document.getElementById("studentBirth").textContent = "2010年10月20日";
+    renderBarcode("S01T004651");
+
+    if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
+    photoImg = null;
+    if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = null; }
+    photoData = null;
+    photoArea.classList.remove("has-image");
+    setStatus("写真は未設定です。", "");
+
+    var before = currentPoint;
+    currentPoint = INITIAL_POINT;
+    animatePoint(before, INITIAL_POINT);
+
+    setSaveState("保存データを消去しました");
+  });
+
+  restoreAll();
+
+  /* =================================================================
+     7. ホーム画面アプリ（PWA）用のアイコンとマニフェストを生成
+        1 ファイル構成のため外部ファイルを持てない。アイコンを canvas で
+        描き、マニフェストごと data URL として埋め込む
+     ================================================================= */
+  function drawIcon(size, maskable) {
+    var canvas = document.createElement("canvas");
+    canvas.width  = size;
+    canvas.height = size;
+    var ctx = canvas.getContext("2d");
+
+    var grd = ctx.createLinearGradient(0, 0, size, size);
+    grd.addColorStop(0, "#2f6fb8");
+    grd.addColorStop(1, "#14294a");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, size, size);
+
+    // マスカブルアイコンは外周を切られてもよいよう内側に描く
+    var pad    = maskable ? size * 0.20 : size * 0.13;
+    var innerW = size - pad * 2;
+    var cardH  = innerW * 0.66;
+    var cardY  = (size - cardH) / 2;
+
+    ctx.strokeStyle = "rgba(255,255,255,0.85)";
+    ctx.lineWidth = Math.max(2, size * 0.016);
+    ctx.strokeRect(pad, cardY, innerW, cardH);
+
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillRect(pad, cardY + cardH * 0.27, innerW, Math.max(1, size * 0.014));
+
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold " + Math.round(innerW * 0.27) + "px " +
+               '"Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif';
+    ctx.fillText("学生証", size / 2, cardY + cardH * 0.66);
+
+    return canvas.toDataURL("image/png");
+  }
+
+  try {
+    var icon192  = drawIcon(192, false);
+    var icon512  = drawIcon(512, false);
+    var maskable = drawIcon(512, true);
+
+    var manifest = {
+      name: "高度育成高等学校 学生証",
+      short_name: "学生証",
+      description: "高度育成高等学校の学生証",
+      start_url: location.href.split("#")[0],
+      scope: location.href.replace(/[^/]*$/, ""),
+      display: "standalone",
+      orientation: "portrait",
+      background_color: "#e9eff6",
+      theme_color: "#eef4fb",
+      icons: [
+        { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: maskable, sizes: "512x512", type: "image/png", purpose: "maskable" }
+      ]
+    };
+
+    document.getElementById("manifestLink").href =
+      "data:application/manifest+json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(manifest));
+
+    document.getElementById("appleIcon").href   = icon192;   // iOS ホーム画面
+    document.getElementById("faviconLink").href = icon192;   // タブのアイコン
+  } catch (err) {
+    // アイコン生成に失敗してもアプリ本体の動作には影響させない
+  }
 
 })();
 </script>
