@@ -359,15 +359,21 @@
     border: 1.8px solid #c0392b;
     border-radius: 50%;
     color: #c0392b;
+    font-size: 13px;
+    font-weight: 800;
+    transform: rotate(-8deg);
+    opacity: 0.86;
+    /* 内側の幅を 1 文字ぶんにして、1 文字ずつ折り返させる。
+       こうすると <br> を入れなくても縦に並び、文字はそのまま編集できる
+       （幅と行の高さは文字数に応じて JS 側で調整する） */
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
-    font-weight: 800;
-    line-height: 1.0;
     text-align: center;
-    transform: rotate(-8deg);
-    opacity: 0.86;
+    word-break: break-all;
+    line-height: 1.05;
+    letter-spacing: 0;
+    overflow: hidden;
   }
 
   .stamp-label {
@@ -376,12 +382,37 @@
     top: 184px;
     width: 110px;
     height: 26px;
+    color: #4a3438;
+  }
+
+  .sl-line {
+    height: 13px;
+    line-height: 13px;
     font-size: 7.5px;
     font-weight: 700;
-    line-height: 13px;
-    color: #4a3438;
     text-align: right;
     white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* 画面上で編集できる部分の共通スタイル */
+  .ed {
+    outline: none;
+    cursor: text;
+    border-radius: 2px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .ed:hover  { background: rgba(124, 34, 48, 0.07); }
+  .ed:focus  { background: #fff8f9; box-shadow: 0 0 0 2px rgba(124, 34, 48, 0.32); }
+
+  /* 印は丸のまま（.ed の角丸で上書きされないように） */
+  .stamp.ed { border-radius: 50%; }
+
+  .ed-dark:hover { background: rgba(255, 255, 255, 0.14); }
+  .ed-dark:focus {
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
   }
 
   /* ===================================================================
@@ -828,7 +859,8 @@
         <!-- ---------------------- 表面 ---------------------- -->
         <div class="card-face card-front" id="cardFront">
           <div class="front-header"></div>
-          <div class="front-header-title">学生証</div>
+          <div class="front-header-title ed ed-dark" id="frontTitle"
+               contenteditable="true" spellcheck="false" data-default="学生証">学生証</div>
           <canvas id="crestWatermark" width="352" height="352"></canvas>
 
           <!-- 写真（label なので JS なしでもファイル選択が開く） -->
@@ -861,24 +893,32 @@
 
           <div class="f-label" id="labBirth">生年月日</div>
           <div class="f-value" id="valBirth" contenteditable="true" spellcheck="false"
-               data-default="2010年10月20日">2010年10月20日</div>
+               data-default="10月20日">10月20日</div>
 
           <div class="f-rule" id="rule2"></div>
-          <div class="certify">上記の者は当校の生徒であることを証明する。</div>
+          <div class="certify ed" id="certifyText" contenteditable="true" spellcheck="false"
+               data-default="上記の者は当校の生徒であることを証明する。">上記の者は当校の生徒であることを証明する。</div>
 
           <!-- バーコード -->
           <div class="barcode" id="barcode" aria-hidden="true"></div>
           <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
 
           <!-- 学校長印 -->
-          <div class="stamp-label">東京都高度育成高等学校<br>学校長　印</div>
-          <div class="stamp" id="stampEl">坂<br>柳</div>
+          <div class="stamp-label">
+            <div class="sl-line ed" id="stampSchool" contenteditable="true" spellcheck="false"
+                 data-default="東京都高度育成高等学校">東京都高度育成高等学校</div>
+            <div class="sl-line ed" id="stampRole" contenteditable="true" spellcheck="false"
+                 data-default="学校長　印">学校長　印</div>
+          </div>
+          <div class="stamp ed" id="stampEl" contenteditable="true" spellcheck="false"
+               data-default="坂柳">坂柳</div>
         </div>
 
         <!-- ---------------------- 裏面 ---------------------- -->
         <div class="card-face card-back" id="cardBack">
           <canvas id="crestBack" width="480" height="480"></canvas>
-          <div class="back-school">東京都高度育成高等学校</div>
+          <div class="back-school ed ed-dark" id="backSchool" contenteditable="true"
+               spellcheck="false" data-default="東京都高度育成高等学校">東京都高度育成高等学校</div>
         </div>
 
       </div>
@@ -1130,8 +1170,36 @@
   /* =================================================================
      2. 文字の直接編集
      ================================================================= */
-  var editables = ["valName", "valRoman", "valId", "valClass", "valBirth"]
-    .map(function (id) { return document.getElementById(id); });
+  var editables = [
+    "frontTitle",     // 「学生証」の見出し
+    "valName", "valRoman", "valId", "valClass", "valBirth",
+    "certifyText",    // 「上記の者は…」の一文
+    "stampSchool",    // 印の脇書き（校名）
+    "stampRole",      // 印の脇書き（役職）
+    "stampEl",        // 印の名前
+    "backSchool"      // 裏面の校名
+  ].map(function (id) { return document.getElementById(id); });
+
+  var stampEl     = document.getElementById("stampEl");
+  var stampSchool = document.getElementById("stampSchool");
+  var backSchool  = document.getElementById("backSchool");
+
+  // 印は文字数に応じて字の大きさを変える（丸からはみ出さないように）
+  function fitStampFont() {
+    var n = stampEl.textContent.replace(/\s+/g, "").length || 1;
+    var size = n <= 1 ? 19 : (n === 2 ? 13 : (n === 3 ? 10 : 8));
+    var padX = Math.max(0, (36 - 3.6 - size) / 2);   // 内側の幅＝1 文字ぶん
+    stampEl.style.fontSize   = size + "px";
+    stampEl.style.padding    = "1px " + padX + "px";
+    stampEl.style.lineHeight = (size * 1.05) + "px";
+  }
+
+  // 表面の脇書きと裏面の校名は同じものとして扱う
+  function syncSchoolName(from) {
+    var text = from.textContent;
+    var other = (from === stampSchool) ? backSchool : stampSchool;
+    if (other.textContent !== text) { other.textContent = text; }
+  }
 
   editables.forEach(function (el) {
     el.addEventListener("keydown", function (e) {
@@ -1145,14 +1213,24 @@
       document.execCommand("insertText", false, String(text).replace(/[\r\n]+/g, " "));
     });
 
-    el.addEventListener("input", scheduleSave);
+    el.addEventListener("input", function () {
+      if (el === stampEl) { fitStampFont(); }
+      if (el === stampSchool || el === backSchool) { syncSchoolName(el); }
+      scheduleSave();
+    });
 
     el.addEventListener("blur", function () {
-      if (el.textContent.trim() === "") { el.textContent = el.getAttribute("data-default"); }
+      if (el.textContent.trim() === "") {
+        el.textContent = el.getAttribute("data-default");
+        if (el === stampEl) { fitStampFont(); }
+        if (el === stampSchool || el === backSchool) { syncSchoolName(el); }
+      }
       el.scrollLeft = 0;
       scheduleSave();
     });
   });
+
+  fitStampFont();
 
   /* =================================================================
      3. ダミーバーコード（学籍番号に連動）
@@ -1855,6 +1933,11 @@
       sid:    textOf("valId"),
       cls:    textOf("valClass"),
       birth:  textOf("valBirth"),
+      title:   textOf("frontTitle"),
+      school:  textOf("stampSchool"),
+      role:    textOf("stampRole"),
+      stamp:   textOf("stampEl"),
+      certify: textOf("certifyText"),
       point:  currentPoint,
       photo:  photoData,
       logo:   logoSourceData,
@@ -1917,10 +2000,18 @@
     if (!data || typeof data !== "object") { return; }
 
     var map = { name: "valName", roman: "valRoman", sid: "valId",
-                cls: "valClass", birth: "valBirth" };
+                cls: "valClass", birth: "valBirth", title: "frontTitle",
+                role: "stampRole", stamp: "stampEl", certify: "certifyText" };
     Object.keys(map).forEach(function (key) {
       if (data[key]) { document.getElementById(map[key]).textContent = data[key]; }
     });
+
+    if (data.school) {
+      stampSchool.textContent = data.school;
+      backSchool.textContent  = data.school;
+    }
+
+    fitStampFont();
 
     renderBarcode(textOf("valId"));
 
@@ -1960,6 +2051,7 @@
     try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* 無視 */ }
 
     editables.forEach(function (el) { el.textContent = el.getAttribute("data-default"); });
+    fitStampFont();
     renderBarcode(textOf("valId"));
 
     if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
@@ -2060,7 +2152,11 @@
     opt = opt || {};
     var r  = rectOf(el, root);
     var st = styleOf(el);
-    drawText(ctx, el.textContent.trim(), r.x + (opt.dx || 0),
+    // 右寄せ・中央寄せのときは矩形の右端／中央を基準にする
+    var x = r.x + (opt.dx || 0);
+    if (opt.align === "right")  { x = r.x + r.w + (opt.dx || 0); }
+    if (opt.align === "center") { x = r.x + r.w / 2 + (opt.dx || 0); }
+    drawText(ctx, el.textContent.trim(), x,
              r.y + r.h / 2 + st.size * 0.36, {
       size:    st.size,
       weight:  st.weight,
@@ -2125,8 +2221,8 @@
     ctx.fillStyle = hg;
     ctx.fillRect(0, 0, CARD_W, 31);
 
-    drawText(ctx, "学生証", CARD_W / 2, 21, {
-      size: 15, weight: "800", color: "#ffffff", spacing: 15 * 0.34, align: "center"
+    drawEl(ctx, document.getElementById("frontTitle"), cardFront, {
+      align: "center", color: "#ffffff", dx: 1
     });
 
     // --- 写真 ---
@@ -2213,16 +2309,12 @@
     drawEl(ctx, barcodeCaption, cardFront, { dx: 1, family: MONO_FAMILY });
 
     // --- 学校長印 ---
-    var lblEl = document.querySelector(".stamp-label");
-    var lblR  = rectOf(lblEl, cardFront);
-    var lblS  = styleOf(lblEl);
-    ["東京都高度育成高等学校", "学校長　印"].forEach(function (line, idx) {
-      drawText(ctx, line, lblR.x + lblR.w + 1, lblR.y + 1 + 13 * idx + 9.5, {
-        size: lblS.size, weight: lblS.weight, color: lblS.color, align: "right"
+    Array.prototype.forEach.call(
+      document.querySelectorAll(".stamp-label .sl-line"),
+      function (line) {
+        drawEl(ctx, line, cardFront, { align: "right", dx: 1 });
       });
-    });
 
-    var stampEl = document.getElementById("stampEl");
     var sR = rectOf(stampEl, cardFront);
     var chars = stampEl.textContent.replace(/\s+/g, "").split("");
 
@@ -2236,7 +2328,8 @@
     ctx.arc(0, 0, sR.w / 2 - 0.9, 0, Math.PI * 2);
     ctx.stroke();
 
-    var chSize = chars.length > 2 ? 10 : 13;
+    // 画面と同じ字の大きさで縦に並べる
+    var chSize = styleOf(stampEl).size;
     var chGap  = chSize * 1.02;
     var top    = -((chars.length - 1) * chGap) / 2;
     chars.forEach(function (ch, idx) {
