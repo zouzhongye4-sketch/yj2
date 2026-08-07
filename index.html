@@ -20,6 +20,78 @@
 
 <style>
   /* ===================================================================
+     配色（テーマ）
+     ここに並ぶ色は「色合いを変える」機能から JS がまとめて書き換える。
+     基準色 #7c2230（えんじ）の色相・彩度だけを差し替え、
+     明るさの並びはそのままにするので、どの色を選んでも印象が崩れない。
+     =================================================================== */
+  :root {
+    /* カードの主役になるえんじ色 */
+    --c-main:       #7c2230;   /* 帯・枠線・校章 */
+    --c-light:      #8b2735;   /* 帯の上側 */
+    --c-deep:       #6f1d29;   /* 帯の下側・裏面の枠 */
+    --c-deeper:     #661a26;   /* 裏面の下側 */
+    --c-crest-bg:   #7a2130;   /* 裏面の校章の地色 */
+
+    /* 文字 */
+    --c-ink:        #2b2224;   /* 本文 */
+    --c-ink-strong: #1d1719;   /* 氏名・学籍番号など */
+    --c-label:      #6d4a50;   /* 項目名 */
+    --c-sub:        #5d4045;   /* ローマ字 */
+    --c-cert:       #4a3438;   /* 証明文・脇書き */
+    --c-mute:       #8d7278;   /* 補助文字 */
+    --c-mute2:      #c3aeb3;   /* 書き出し時の PHOTO 文字 */
+
+    /* 罫線・枠・地 */
+    --c-rule:       #d8c4c8;   /* 区切り線 */
+    --c-frame:      #b09aa0;   /* 写真枠 */
+    --c-paper1:     #faf7f8;   /* 写真枠の地（明） */
+    --c-paper2:     #f2ebed;   /* 写真枠の地（暗） */
+    --c-tint:       #fff8f9;   /* 編集中の下地 */
+    --c-bar:        #241a1c;   /* バーコードの黒 */
+
+    /* 画面まわり */
+    --c-title:      #7c5b60;
+    --c-status:     #6b565a;
+    --c-hint:       #5f4c50;
+    --c-save:       #7a656a;
+    --c-help:       #5a464a;
+    --c-bg-glow:    #f3e9ea;
+    --c-bg-top:     #efe9e8;
+    --c-bg-bot:     #d8cdcd;
+    --c-exp1:       #4a3b3e;
+    --c-exp2:       #2f2528;
+    --c-exp3:       #241c1e;
+
+    /* PRIVATE POINT パネル */
+    --c-pp-bg1:     #1a1214;
+    --c-pp-bg2:     #2a1c20;
+    --c-pp-bg3:     #150e10;
+    --c-pp-acc:     #e2899a;
+    --c-pp-sub:     #a6858b;
+    --c-pp-text:    #f0e2e4;
+    --c-pp-val:     #fdf3f5;
+    --c-pp-preset:  #dda9b3;
+    --c-pp-unit:    #d79ba6;
+    --c-pp-ph:      #8d7176;
+    --c-pp-log:     #b1959a;
+    --c-pp-reset:   #b09a9e;
+    --c-pp-ink:     #1b0c0f;
+
+    /* rgba() で使う分（半透明にするため R,G,B だけを持つ） */
+    --rgb-main:       124, 34, 48;
+    --rgb-shadow:      60, 26, 32;
+    --rgb-exp:         47, 37, 40;
+    --rgb-bg-glow:    243, 233, 234;
+    --rgb-pp-scan:    255, 210, 220;
+    --rgb-pp-line:    214, 150, 160;
+    --rgb-pp-acc:     226, 137, 154;
+    --rgb-pp-reset:   176, 154, 158;
+    --rgb-pp-dark:     10, 5, 7;
+    --rgb-pp-shadow:   40, 20, 24;
+  }
+
+  /* ===================================================================
      全体設定
      =================================================================== */
   * {
@@ -36,21 +108,21 @@
     align-items: center;
     padding: 22px 12px 48px;
     background:
-      radial-gradient(1000px 500px at 50% -12%, #f3e9ea 0%, rgba(243,233,234,0) 62%),
-      linear-gradient(180deg, #efe9e8 0%, #d8cdcd 100%);
+      radial-gradient(1000px 500px at 50% -12%, var(--c-bg-glow) 0%, rgba(var(--rgb-bg-glow), 0) 62%),
+      linear-gradient(180deg, var(--c-bg-top) 0%, var(--c-bg-bot) 100%);
     background-attachment: fixed;
     /* 硬めのゴシック体 */
     font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3",
                  "Yu Gothic", "游ゴシック体", YuGothic, "Meiryo", メイリオ,
                  "Noto Sans JP", "Segoe UI", Arial, sans-serif;
     font-feature-settings: "palt" 1;
-    color: #2b2224;
+    color: var(--c-ink);
   }
 
   .page-title {
     font-size: 12px;
     letter-spacing: 0.3em;
-    color: #7c5b60;
+    color: var(--c-title);
     font-weight: 700;
     margin: 0 0 14px;
     text-align: center;
@@ -95,7 +167,7 @@
     overflow: hidden;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    box-shadow: 0 10px 24px rgba(60, 26, 32, 0.3);
+    box-shadow: 0 10px 24px rgba(var(--rgb-shadow), 0.3);
   }
 
   /* ===================================================================
@@ -103,7 +175,7 @@
      =================================================================== */
   .card-front {
     background: #ffffff;
-    border: 1px solid #7c2230;
+    border: 1px solid var(--c-main);
   }
 
   /* 上部のえんじ色の帯 */
@@ -113,7 +185,7 @@
     top: 0;
     width: 378px;
     height: 30px;
-    background: linear-gradient(180deg, #8b2735 0%, #7c2230 55%, #6f1d29 100%);
+    background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 55%, var(--c-deep) 100%);
   }
 
   .front-header-title {
@@ -149,11 +221,11 @@
     top: 42px;
     width: 100px;
     height: 130px;
-    border: 1px solid #b09aa0;
+    border: 1px solid var(--c-frame);
     background:
       repeating-linear-gradient(45deg,
-        #faf7f8 0px, #faf7f8 6px,
-        #f2ebed 6px, #f2ebed 12px);
+        var(--c-paper1) 0px, var(--c-paper1) 6px,
+        var(--c-paper2) 6px, var(--c-paper2) 12px);
     overflow: hidden;
     cursor: pointer;
     display: flex;
@@ -163,7 +235,7 @@
     -webkit-user-select: none;
   }
 
-  .photo-area:active { border-color: #7c2230; }
+  .photo-area:active { border-color: var(--c-main); }
 
   .photo-area img {
     width: 100%;
@@ -184,7 +256,7 @@
     width: 32px;
     height: 26px;
     margin: 0 auto 7px;
-    border: 2px solid #b09aa0;
+    border: 2px solid var(--c-frame);
     border-radius: 3px;
     position: relative;
   }
@@ -194,7 +266,7 @@
     position: absolute;
     left: 4px; right: 4px; bottom: 3px;
     height: 10px;
-    background: #b09aa0;
+    background: var(--c-frame);
     clip-path: polygon(0% 100%, 32% 22%, 55% 100%, 70% 55%, 100% 100%);
   }
 
@@ -204,13 +276,13 @@
     top: 4px; right: 5px;
     width: 5px; height: 5px;
     border-radius: 50%;
-    background: #b09aa0;
+    background: var(--c-frame);
   }
 
   .photo-placeholder .txt {
     font-size: 9px;
     line-height: 1.5;
-    color: #8d7278;
+    color: var(--c-mute);
     font-weight: 600;
   }
 
@@ -224,7 +296,7 @@
     height: 18px;
     border: none;
     border-radius: 50%;
-    background: rgba(60, 26, 32, 0.62);
+    background: rgba(var(--rgb-shadow), 0.62);
     color: #fff;
     font-size: 11px;
     line-height: 18px;
@@ -242,7 +314,7 @@
     width: 52px;
     font-size: 9.5px;
     font-weight: 700;
-    color: #6d4a50;
+    color: var(--c-label);
     text-align: justify;
     text-align-last: justify;   /* 均等割り付け（氏　名 のような字送り） */
     line-height: 14px;
@@ -252,7 +324,7 @@
   .f-value {
     position: absolute;
     font-weight: 700;
-    color: #1d1719;
+    color: var(--c-ink-strong);
     white-space: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
@@ -264,16 +336,16 @@
   }
 
   .f-value::-webkit-scrollbar { display: none; }
-  .f-value:hover { background: rgba(124, 34, 48, 0.05); }
+  .f-value:hover { background: rgba(var(--rgb-main), 0.05); }
   .f-value:focus {
-    background: #fff8f9;
-    box-shadow: 0 0 0 2px rgba(124, 34, 48, 0.3);
+    background: var(--c-tint);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-main), 0.3);
   }
 
   /* 氏名 */
   #labName  { left: 126px; top: 48px; }
   #valName  { left: 186px; top: 42px; width: 180px; font-size: 18px; height: 24px; line-height: 24px; letter-spacing: 0.04em; }
-  #valRoman { left: 186px; top: 66px; width: 180px; font-size: 10px; height: 14px; line-height: 14px; color: #5d4045; font-weight: 600; letter-spacing: 0.06em; }
+  #valRoman { left: 186px; top: 66px; width: 180px; font-size: 10px; height: 14px; line-height: 14px; color: var(--c-sub); font-weight: 600; letter-spacing: 0.06em; }
 
   /* 区切り線 */
   .f-rule {
@@ -281,7 +353,7 @@
     left: 126px;
     width: 240px;
     height: 1px;
-    background: #d8c4c8;
+    background: var(--c-rule);
   }
 
   #rule1 { top: 82px; }
@@ -307,7 +379,7 @@
     line-height: 14px;
     font-size: 8.5px;
     font-weight: 600;
-    color: #4a3438;
+    color: var(--c-cert);
     letter-spacing: 0.02em;
   }
 
@@ -323,14 +395,14 @@
     gap: 1px;
     padding: 2px 3px;
     background: #ffffff;
-    border: 1px solid #d8c4c8;
+    border: 1px solid var(--c-rule);
     overflow: hidden;
   }
 
   .barcode span {
     display: block;
     height: 100%;
-    background: #241a1c;
+    background: var(--c-bar);
     flex: 0 0 auto;
   }
 
@@ -344,7 +416,7 @@
     font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-size: 8px;
     letter-spacing: 0.2em;
-    color: #6d4a50;
+    color: var(--c-label);
     white-space: nowrap;
     overflow: hidden;
   }
@@ -382,7 +454,7 @@
     top: 184px;
     width: 110px;
     height: 26px;
-    color: #4a3438;
+    color: var(--c-cert);
   }
 
   .sl-line {
@@ -403,8 +475,8 @@
     transition: background 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .ed:hover  { background: rgba(124, 34, 48, 0.07); }
-  .ed:focus  { background: #fff8f9; box-shadow: 0 0 0 2px rgba(124, 34, 48, 0.32); }
+  .ed:hover  { background: rgba(var(--rgb-main), 0.07); }
+  .ed:focus  { background: var(--c-tint); box-shadow: 0 0 0 2px rgba(var(--rgb-main), 0.32); }
 
   /* 印は丸のまま（.ed の角丸で上書きされないように） */
   .stamp.ed { border-radius: 50%; }
@@ -419,8 +491,8 @@
      裏面
      =================================================================== */
   .card-back {
-    background: linear-gradient(160deg, #8b2735 0%, #7c2230 52%, #661a26 100%);
-    border: 1px solid #6f1d29;
+    background: linear-gradient(160deg, var(--c-light) 0%, var(--c-main) 52%, var(--c-deeper) 100%);
+    border: 1px solid var(--c-deep);
     transform: rotateY(180deg);
   }
 
@@ -448,6 +520,135 @@
   }
 
   /* ===================================================================
+     裏面 2（心構え＋通学方法記録）
+     裏面は 2 種類あり、どちらか一方だけを表示する。
+     display: none にすると offsetLeft が 0 になって書き出しの位置計算が
+     崩れるため、visibility で切り替える（レイアウトは保たれる）。
+     =================================================================== */
+  .card-back2 {
+    background: #ffffff;
+    border: 1px solid var(--c-main);
+    transform: rotateY(180deg);
+    visibility: hidden;
+  }
+
+  .card-flip.show-back2 .card-back  { visibility: hidden; }
+  .card-flip.show-back2 .card-back2 { visibility: visible; }
+
+  /* 上段：生徒としての心構え -------------------------------------- */
+  .b2-band {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 378px;
+    height: 26px;
+    background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 55%, var(--c-deep) 100%);
+  }
+
+  .b2-band-title {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 378px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-indent: 0.22em;
+  }
+
+  /* 心構えの 4 項目（1 項目 1 行） */
+  .b2-mk {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: var(--c-main);
+    transform: rotate(45deg);
+  }
+
+  .b2-item {
+    position: absolute;
+    left: 26px;
+    width: 340px;
+    height: 14px;
+    line-height: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--c-cert);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .b2-item::-webkit-scrollbar { display: none; }
+
+  /* 中段の区切り */
+  .b2-split {
+    position: absolute;
+    left: 12px;
+    top: 88px;
+    width: 354px;
+    height: 1px;
+    background: var(--c-rule);
+  }
+
+  /* 下段：通学方法記録 --------------------------------------------- */
+  .b2-rec-title {
+    position: absolute;
+    left: 12px;
+    top: 94px;
+    width: 354px;
+    height: 16px;
+    line-height: 16px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: var(--c-main);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .b2-rec-title::-webkit-scrollbar { display: none; }
+
+  /* 表の枠線（ここだけは編集できない） */
+  .b2-grid {
+    position: absolute;
+    background: var(--c-frame);
+  }
+
+  /* 見出し行の下地 */
+  .b2-head-bg {
+    position: absolute;
+    background: var(--c-paper2);
+  }
+
+  .b2-cell {
+    position: absolute;
+    height: 19px;
+    line-height: 19px;
+    padding: 0 3px;
+    font-size: 9px;
+    color: var(--c-ink);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .b2-cell::-webkit-scrollbar { display: none; }
+
+  .b2-cell.head {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--c-label);
+    text-align: center;
+    letter-spacing: 0.08em;
+  }
+
+  /* ===================================================================
      操作パネル
      =================================================================== */
   .side-tabs {
@@ -461,21 +662,101 @@
   .side-tab {
     flex: 1 1 0;
     height: 34px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     font-family: inherit;
     letter-spacing: 0.08em;
-    color: #7c2230;
+    color: var(--c-main);
     background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(124, 34, 48, 0.4);
+    border: 1px solid rgba(var(--rgb-main), 0.4);
     border-radius: 8px;
     cursor: pointer;
   }
 
   .side-tab.active {
     color: #ffffff;
-    background: linear-gradient(180deg, #8b2735 0%, #7c2230 100%);
-    border-color: #6f1d29;
+    background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 100%);
+    border-color: var(--c-deep);
+  }
+
+  /* ===================================================================
+     色合いの選択
+     =================================================================== */
+  .theme-panel {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 12px;
+    padding: 11px 12px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(var(--rgb-main), 0.3);
+  }
+
+  .theme-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 9px;
+  }
+
+  .theme-title {
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    color: var(--c-main);
+  }
+
+  .theme-now {
+    font-size: 10.5px;
+    color: var(--c-status);
+  }
+
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .swatch {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 1px rgba(var(--rgb-shadow), 0.25);
+    cursor: pointer;
+  }
+
+  .swatch.active {
+    box-shadow: 0 0 0 2px var(--c-ink), 0 0 0 4px rgba(255, 255, 255, 0.9);
+  }
+
+  /* 自由に色を選ぶ（丸いボタンに見せる） */
+  .swatch-custom {
+    position: relative;
+    overflow: hidden;
+    background:
+      conic-gradient(#e14a4a, #e1c04a, #4ac45f, #4aa8e1, #9a5ce1, #e14a9a, #e14a4a);
+  }
+
+  .swatch-custom input {
+    position: absolute;
+    left: -8px;
+    top: -8px;
+    width: 60px;
+    height: 60px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .theme-note {
+    margin: 9px 0 0;
+    font-size: 10.5px;
+    line-height: 1.7;
+    color: var(--c-status);
   }
 
   .file-input {
@@ -517,16 +798,22 @@
   .btn:disabled { opacity: 0.6; cursor: default; }
 
   .btn-photo {
-    background: linear-gradient(180deg, #8b2735 0%, #7c2230 100%);
-    border-color: #6f1d29;
-    box-shadow: 0 3px 8px rgba(124, 34, 48, 0.28);
+    background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 100%);
+    border-color: var(--c-deep);
+    box-shadow: 0 3px 8px rgba(var(--rgb-main), 0.28);
   }
 
+  /* 3 つ並ぶので、狭い画面でも 1 行に収まるよう字を少し詰める */
   .btn-export {
     flex: 1 1 0;
-    background: linear-gradient(180deg, #4a3b3e 0%, #2f2528 100%);
-    border-color: #241c1e;
-    box-shadow: 0 3px 8px rgba(47, 37, 40, 0.26);
+    min-width: 0;
+    padding: 0 6px;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    background: linear-gradient(180deg, var(--c-exp1) 0%, var(--c-exp2) 100%);
+    border-color: var(--c-exp3);
+    box-shadow: 0 3px 8px rgba(var(--rgb-exp), 0.26);
   }
 
   .status {
@@ -534,7 +821,7 @@
     min-width: 0;
     font-size: 11px;
     line-height: 1.6;
-    color: #6b565a;
+    color: var(--c-status);
     word-break: break-all;
   }
 
@@ -548,7 +835,7 @@
     padding: 10px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(124, 34, 48, 0.3);
+    border: 1px solid rgba(var(--rgb-main), 0.3);
     display: none;
   }
 
@@ -559,14 +846,14 @@
     width: 100%;
     height: auto;
     border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(60, 26, 32, 0.2);
+    box-shadow: 0 2px 8px rgba(var(--rgb-shadow), 0.2);
   }
 
   .export-preview p {
     margin: 8px 0 0;
     font-size: 11px;
     line-height: 1.7;
-    color: #5a464a;
+    color: var(--c-help);
   }
 
   /* ===================================================================
@@ -578,10 +865,10 @@
     margin-top: 18px;
     border-radius: 12px;
     padding: 14px 14px 16px;
-    background: linear-gradient(160deg, #1a1214 0%, #2a1c20 55%, #150e10 100%);
-    border: 1px solid rgba(214, 150, 160, 0.35);
-    box-shadow: 0 10px 26px rgba(40, 20, 24, 0.32);
-    color: #f0e2e4;
+    background: linear-gradient(160deg, var(--c-pp-bg1) 0%, var(--c-pp-bg2) 55%, var(--c-pp-bg3) 100%);
+    border: 1px solid rgba(var(--rgb-pp-line), 0.35);
+    box-shadow: 0 10px 26px rgba(var(--rgb-pp-shadow), 0.32);
+    color: var(--c-pp-text);
     position: relative;
     overflow: hidden;
   }
@@ -592,8 +879,8 @@
     inset: 0;
     background: repeating-linear-gradient(
       0deg,
-      rgba(255, 210, 220, 0.045) 0px,
-      rgba(255, 210, 220, 0.045) 1px,
+      rgba(var(--rgb-pp-scan), 0.045) 0px,
+      rgba(var(--rgb-pp-scan), 0.045) 1px,
       rgba(0, 0, 0, 0) 2px,
       rgba(0, 0, 0, 0) 4px);
     pointer-events: none;
@@ -611,13 +898,13 @@
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.3em;
-    color: #e2899a;
+    color: var(--c-pp-acc);
   }
 
   .pp-sub {
     font-size: 9px;
     letter-spacing: 0.14em;
-    color: #a6858b;
+    color: var(--c-pp-sub);
   }
 
   .pp-value-row {
@@ -628,8 +915,8 @@
     gap: 6px;
     padding: 6px 10px 8px;
     border-radius: 8px;
-    background: rgba(10, 5, 7, 0.55);
-    border: 1px solid rgba(214, 150, 160, 0.2);
+    background: rgba(var(--rgb-pp-dark), 0.55);
+    border: 1px solid rgba(var(--rgb-pp-line), 0.2);
     margin-bottom: 12px;
   }
 
@@ -637,8 +924,8 @@
     font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-size: 32px;
     font-weight: 700;
-    color: #fdf3f5;
-    text-shadow: 0 0 12px rgba(226, 137, 154, 0.5);
+    color: var(--c-pp-val);
+    text-shadow: 0 0 12px rgba(var(--rgb-pp-acc), 0.5);
     transition: color 0.2s ease, text-shadow 0.2s ease;
     line-height: 1.1;
   }
@@ -667,7 +954,7 @@
   .pp-unit {
     font-size: 15px;
     font-weight: 700;
-    color: #d79ba6;
+    color: var(--c-pp-unit);
     letter-spacing: 0.06em;
   }
 
@@ -698,9 +985,9 @@
     font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-weight: 700;
     text-align: right;
-    color: #fdf3f5;
-    background: rgba(10, 5, 7, 0.7);
-    border: 1px solid rgba(214, 150, 160, 0.32);
+    color: var(--c-pp-val);
+    background: rgba(var(--rgb-pp-dark), 0.7);
+    border: 1px solid rgba(var(--rgb-pp-line), 0.32);
     border-radius: 8px;
     outline: none;
     -moz-appearance: textfield;
@@ -710,11 +997,11 @@
   #ppInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
   #ppInput:focus {
-    border-color: #e2899a;
-    box-shadow: 0 0 0 3px rgba(226, 137, 154, 0.18);
+    border-color: var(--c-pp-acc);
+    box-shadow: 0 0 0 3px rgba(var(--rgb-pp-acc), 0.18);
   }
 
-  #ppInput::placeholder { color: #8d7176; font-weight: 400; }
+  #ppInput::placeholder { color: var(--c-pp-ph); font-weight: 400; }
 
   .pp-btn {
     flex: 0 0 auto;
@@ -728,7 +1015,7 @@
     border: 1px solid transparent;
     cursor: pointer;
     font-family: inherit;
-    color: #1b0c0f;
+    color: var(--c-pp-ink);
   }
 
   .pp-btn:active { transform: translateY(1px) scale(0.98); }
@@ -755,15 +1042,15 @@
     padding: 5px 10px;
     font-size: 11px;
     font-weight: 700;
-    color: #dda9b3;
-    background: rgba(226, 137, 154, 0.08);
-    border: 1px solid rgba(226, 137, 154, 0.3);
+    color: var(--c-pp-preset);
+    background: rgba(var(--rgb-pp-acc), 0.08);
+    border: 1px solid rgba(var(--rgb-pp-acc), 0.3);
     border-radius: 999px;
     cursor: pointer;
     font-family: inherit;
   }
 
-  .preset:active { background: rgba(226, 137, 154, 0.26); color: #fff; }
+  .preset:active { background: rgba(var(--rgb-pp-acc), 0.26); color: #fff; }
 
   .preset.danger {
     color: #ffb0b0;
@@ -775,9 +1062,9 @@
 
   .preset.reset {
     margin-left: auto;
-    color: #b09a9e;
-    border-color: rgba(176, 154, 158, 0.3);
-    background: rgba(176, 154, 158, 0.08);
+    color: var(--c-pp-reset);
+    border-color: rgba(var(--rgb-pp-reset), 0.3);
+    background: rgba(var(--rgb-pp-reset), 0.08);
   }
 
   .pp-log {
@@ -785,7 +1072,7 @@
     margin-top: 10px;
     min-height: 15px;
     font-size: 11px;
-    color: #b1959a;
+    color: var(--c-pp-log);
   }
 
   .pp-log.ok { color: #7ef0a8; }
@@ -799,18 +1086,18 @@
     max-width: 380px;
     font-size: 11px;
     line-height: 1.9;
-    color: #5f4c50;
+    color: var(--c-hint);
   }
 
   .hint { margin-top: 16px; }
-  .hint b { color: #7c2230; }
+  .hint b { color: var(--c-main); }
 
   .install-note {
     margin-top: 14px;
     padding: 11px 13px;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(124, 34, 48, 0.3);
+    border: 1px solid rgba(var(--rgb-main), 0.3);
     line-height: 1.85;
   }
 
@@ -819,15 +1106,15 @@
     margin-bottom: 3px;
     font-size: 11.5px;
     letter-spacing: 0.08em;
-    color: #7c2230;
+    color: var(--c-main);
   }
 
   .install-note code {
     font-family: inherit;
     padding: 0 4px;
     border-radius: 3px;
-    background: rgba(124, 34, 48, 0.1);
-    color: #7c2230;
+    background: rgba(var(--rgb-main), 0.1);
+    color: var(--c-main);
     font-weight: 700;
   }
 
@@ -841,7 +1128,7 @@
     gap: 10px;
   }
 
-  .save-state { font-size: 10.5px; color: #7a656a; }
+  .save-state { font-size: 10.5px; color: var(--c-save); }
 
   .link-btn {
     flex: 0 0 auto;
@@ -849,9 +1136,9 @@
     font-size: 11px;
     font-weight: 700;
     font-family: inherit;
-    color: #7a656a;
+    color: var(--c-save);
     background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(124, 34, 48, 0.3);
+    border: 1px solid rgba(var(--rgb-main), 0.3);
     border-radius: 999px;
     cursor: pointer;
   }
@@ -940,6 +1227,113 @@
                spellcheck="false" data-default="東京都高度育成高等学校">東京都高度育成高等学校</div>
         </div>
 
+        <!-- --------------------- 裏面 2 ---------------------
+             上 1/3 に「生徒としての心構え」、下に「通学方法記録」。
+             枠線（.b2-grid）以外はすべて書き換えられる。          -->
+        <div class="card-face card-back2" id="cardBack2">
+
+          <!-- 上段：心構え -->
+          <div class="b2-band"></div>
+          <div class="b2-band-title ed ed-dark" id="b2Title" contenteditable="true"
+               spellcheck="false" data-default="生徒としての心構え">生徒としての心構え</div>
+
+          <i class="b2-mk" style="left:15px; top:34px"></i>
+          <div class="b2-item ed" id="b2Item1" style="top:30px" data-blank-ok contenteditable="true"
+               spellcheck="false" data-default="実力こそが評価のすべてであると心得る。">実力こそが評価のすべてであると心得る。</div>
+
+          <i class="b2-mk" style="left:15px; top:48px"></i>
+          <div class="b2-item ed" id="b2Item2" style="top:44px" data-blank-ok contenteditable="true"
+               spellcheck="false" data-default="礼節を重んじ、級友と協力する。">礼節を重んじ、級友と協力する。</div>
+
+          <i class="b2-mk" style="left:15px; top:62px"></i>
+          <div class="b2-item ed" id="b2Item3" style="top:58px" data-blank-ok contenteditable="true"
+               spellcheck="false" data-default="時間を守り、遅刻・欠席をしない。">時間を守り、遅刻・欠席をしない。</div>
+
+          <i class="b2-mk" style="left:15px; top:76px"></i>
+          <div class="b2-item ed" id="b2Item4" style="top:72px" data-blank-ok contenteditable="true"
+               spellcheck="false" data-default="自ら考え、自ら行動する。">自ら考え、自ら行動する。</div>
+
+          <div class="b2-split"></div>
+
+          <!-- 下段：通学方法記録 -->
+          <div class="b2-rec-title ed" id="b2RecTitle" contenteditable="true"
+               spellcheck="false" data-default="通学方法記録">通学方法記録</div>
+
+          <!-- 見出し行の下地 -->
+          <div class="b2-head-bg" style="left:12px; top:112px; width:354px; height:20px"></div>
+
+          <!-- 表の枠線（編集不可） -->
+          <div class="b2-grid" style="left:12px;  top:112px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:132px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:152px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:172px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:192px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:212px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:232px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:90px;  top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:168px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:308px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:366px; top:112px; width:1px; height:121px"></div>
+
+          <!-- 見出し行 -->
+          <div class="b2-cell head ed" id="b2Head1" style="left:13px;  top:113px; width:76px"
+               contenteditable="true" spellcheck="false" data-default="日時">日時</div>
+          <div class="b2-cell head ed" id="b2Head2" style="left:91px;  top:113px; width:76px"
+               contenteditable="true" spellcheck="false" data-default="誰と">誰と</div>
+          <div class="b2-cell head ed" id="b2Head3" style="left:169px; top:113px; width:138px"
+               contenteditable="true" spellcheck="false" data-default="どうした">どうした</div>
+          <div class="b2-cell head ed" id="b2Head4" style="left:309px; top:113px; width:56px"
+               contenteditable="true" spellcheck="false" data-default="何回">何回</div>
+
+          <!-- 記入行（1 行目は書き方の例。空欄のままでも構わない） -->
+          <div class="b2-cell ed" id="b2R1C1" style="left:13px;  top:133px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default="4/8 8:10">4/8 8:10</div>
+          <div class="b2-cell ed" id="b2R1C2" style="left:91px;  top:133px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default="堀北さん">堀北さん</div>
+          <div class="b2-cell ed" id="b2R1C3" style="left:169px; top:133px; width:138px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default="電車で一緒に登校した">電車で一緒に登校した</div>
+          <div class="b2-cell ed" id="b2R1C4" style="left:309px; top:133px; width:56px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default="1回">1回</div>
+
+          <div class="b2-cell ed" id="b2R2C1" style="left:13px;  top:153px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R2C2" style="left:91px;  top:153px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R2C3" style="left:169px; top:153px; width:138px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R2C4" style="left:309px; top:153px; width:56px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+          <div class="b2-cell ed" id="b2R3C1" style="left:13px;  top:173px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R3C2" style="left:91px;  top:173px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R3C3" style="left:169px; top:173px; width:138px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R3C4" style="left:309px; top:173px; width:56px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+          <div class="b2-cell ed" id="b2R4C1" style="left:13px;  top:193px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C2" style="left:91px;  top:193px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C3" style="left:169px; top:193px; width:138px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C4" style="left:309px; top:193px; width:56px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+          <div class="b2-cell ed" id="b2R5C1" style="left:13px;  top:213px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C2" style="left:91px;  top:213px; width:76px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C3" style="left:169px; top:213px; width:138px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C4" style="left:309px; top:213px; width:56px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+        </div>
+
       </div>
     </div>
   </div>
@@ -948,6 +1342,40 @@
   <div class="side-tabs">
     <button type="button" class="side-tab active" id="tabFront">表面</button>
     <button type="button" class="side-tab" id="tabBack">裏面</button>
+    <button type="button" class="side-tab" id="tabBack2">裏面2</button>
+  </div>
+
+  <!-- ========================== 色合いの変更 ========================== -->
+  <div class="theme-panel">
+    <div class="theme-head">
+      <div class="theme-title">学生証の色合い</div>
+      <div class="theme-now" id="themeNow">えんじ</div>
+    </div>
+
+    <div class="swatches" id="swatches">
+      <button type="button" class="swatch active" data-color="#7c2230" data-name="えんじ"
+              style="background:#7c2230" aria-label="えんじ"></button>
+      <button type="button" class="swatch" data-color="#1f3a63" data-name="紺"
+              style="background:#1f3a63" aria-label="紺"></button>
+      <button type="button" class="swatch" data-color="#14523f" data-name="深緑"
+              style="background:#14523f" aria-label="深緑"></button>
+      <button type="button" class="swatch" data-color="#3d2a6b" data-name="藍紫"
+              style="background:#3d2a6b" aria-label="藍紫"></button>
+      <button type="button" class="swatch" data-color="#8a5a12" data-name="山吹"
+              style="background:#8a5a12" aria-label="山吹"></button>
+      <button type="button" class="swatch" data-color="#0f5a63" data-name="青緑"
+              style="background:#0f5a63" aria-label="青緑"></button>
+      <button type="button" class="swatch" data-color="#4a4a4a" data-name="墨"
+              style="background:#4a4a4a" aria-label="墨"></button>
+      <span class="swatch swatch-custom" id="swatchCustom" title="好きな色を選ぶ">
+        <input type="color" id="themeColor" value="#7c2230" aria-label="好きな色を選ぶ">
+      </span>
+    </div>
+
+    <p class="theme-note">
+      選んだ色の色相と鮮やかさだけを使い、明暗の並びはそのままにするので、
+      どの色でも学生証らしい見た目のまま全体の色合いが変わります。
+    </p>
   </div>
 
   <!-- ========================= PRIVATE POINT ========================= -->
@@ -1002,10 +1430,11 @@
     <span class="status" id="logoStatus">校章：初期デザイン（描画）</span>
   </div>
 
-  <!-- 表裏を別々の PNG で書き出す（シール印刷用） -->
+  <!-- 各面を別々の PNG で書き出す（シール印刷用） -->
   <div class="tool-row">
     <button type="button" class="btn btn-export" id="btnExportFront">表面を保存</button>
     <button type="button" class="btn btn-export" id="btnExportBack">裏面を保存</button>
+    <button type="button" class="btn btn-export" id="btnExportBack2">裏面2を保存</button>
   </div>
 
   <div class="tool-row">
@@ -1020,9 +1449,12 @@
   <p class="hint">
     <b>使い方</b>：写真枠、または「写真を選択」ボタンで端末の写真を挿入できます。
     氏名・ローマ字・学籍番号・クラス・生年月日はタップして直接書き換えられます。
-    「表面」「裏面」で面を切り替え、それぞれ別の PNG として保存できます。
+    「表面」「裏面」「裏面2」で面を切り替え、それぞれ別の PNG として保存できます。
+    「裏面2」は心構えと通学方法記録の書き込み用で、表の枠線以外はすべて書き換えられます
+    （記入欄は空のままでも構いません）。
+    「学生証の色合い」で好きな色を選ぶと、カード全体の色が入れ替わります。
     校章は「校章の画像を選択」で好きな画像に差し替えられます（白抜き ON なら白地のロゴでも裏面にきれいに乗ります）。
-    入力内容・写真・校章はこの端末に自動保存されます。
+    入力内容・写真・校章・色合いはこの端末に自動保存されます。
   </p>
 
   <div class="install-note" id="installNote">
@@ -1050,6 +1482,157 @@
 
   var cardFront = document.getElementById("cardFront");
   var cardBack  = document.getElementById("cardBack");
+  var cardBack2 = document.getElementById("cardBack2");
+
+  /* =================================================================
+     0. 配色（テーマ）
+        既定のえんじ色 #7c2230 は hsl(351, 57%, 31%)。
+        色を変えるときは「色相」と「彩度」だけを選んだ色に合わせ、
+        明るさ（L）は元のまま使う。こうすると帯・文字・罫線の
+        明暗の関係が保たれるので、どの色にしても学生証らしさが崩れない。
+        彩度は基準色の 57% を 1.000 とした比率で持つ。
+     ================================================================= */
+  var BASE_COLOR = "#7c2230";
+  var BASE_SAT   = 0.5696;      // 基準色の彩度
+
+  /* 名前 : [彩度の比率, 明るさ] */
+  var PALETTE_SPEC = {
+    main:      [1.000, 0.3098],
+    light:     [0.986, 0.3490],
+    deep:      [1.028, 0.2745],
+    deeper:    [1.042, 0.2510],
+    crestBg:   [1.008, 0.3039],
+
+    ink:       [0.205, 0.1510],
+    inkStrong: [0.203, 0.1020],
+    label:     [0.336, 0.3588],
+    sub:       [0.324, 0.3078],
+    cert:      [0.307, 0.2471],
+    mute:      [0.186, 0.5000],
+    mute2:     [0.261, 0.7235],
+
+    rule:      [0.358, 0.8078],
+    frame:     [0.215, 0.6471],
+    paper1:    [0.405, 0.9745],
+    paper2:    [0.372, 0.9353],
+    tint:      [1.756, 0.9863],
+    bar:       [0.283, 0.1216],
+
+    title:     [0.269, 0.4216],
+    status:    [0.191, 0.3784],
+    hint:      [0.195, 0.3353],
+    save:      [0.165, 0.4373],
+    help:      [0.219, 0.3137],
+    bgGlow:    [0.516, 0.9333],
+    bgTop:     [0.315, 0.9235],
+    bgBot:     [0.217, 0.8255],
+    exp1:      [0.198, 0.2608],
+    exp2:      [0.209, 0.1647],
+    exp3:      [0.219, 0.1255],
+
+    ppBg1:     [0.319, 0.0863],
+    ppBg2:     [0.351, 0.1373],
+    ppBg3:     [0.351, 0.0686],
+    ppAcc:     [1.063, 0.7118],
+    ppSub:     [0.275, 0.5863],
+    ppText:    [0.559, 0.9137],
+    ppVal:     [1.254, 0.9725],
+    ppPreset:  [0.761, 0.7647],
+    ppUnit:    [0.752, 0.7255],
+    ppPh:      [0.194, 0.4980],
+    ppLog:     [0.267, 0.6392],
+    ppReset:   [0.215, 0.6471],
+    ppInk:     [0.675, 0.0765],
+
+    shadow:    [0.694, 0.1686],
+    ppScan:    [1.756, 0.9118],
+    ppLine:    [0.770, 0.7137],
+    ppDark:    [0.585, 0.0294],
+    ppShadow:  [0.585, 0.1176]
+  };
+
+  /* CSS 変数名 : パレットの名前（--rgb- が付くものは R,G,B の数値で書く） */
+  var CSS_VARS = {
+    "--c-main": "main", "--c-light": "light", "--c-deep": "deep",
+    "--c-deeper": "deeper", "--c-crest-bg": "crestBg",
+    "--c-ink": "ink", "--c-ink-strong": "inkStrong", "--c-label": "label",
+    "--c-sub": "sub", "--c-cert": "cert", "--c-mute": "mute", "--c-mute2": "mute2",
+    "--c-rule": "rule", "--c-frame": "frame", "--c-paper1": "paper1",
+    "--c-paper2": "paper2", "--c-tint": "tint", "--c-bar": "bar",
+    "--c-title": "title", "--c-status": "status", "--c-hint": "hint",
+    "--c-save": "save", "--c-help": "help", "--c-bg-glow": "bgGlow",
+    "--c-bg-top": "bgTop", "--c-bg-bot": "bgBot",
+    "--c-exp1": "exp1", "--c-exp2": "exp2", "--c-exp3": "exp3",
+    "--c-pp-bg1": "ppBg1", "--c-pp-bg2": "ppBg2", "--c-pp-bg3": "ppBg3",
+    "--c-pp-acc": "ppAcc", "--c-pp-sub": "ppSub", "--c-pp-text": "ppText",
+    "--c-pp-val": "ppVal", "--c-pp-preset": "ppPreset", "--c-pp-unit": "ppUnit",
+    "--c-pp-ph": "ppPh", "--c-pp-log": "ppLog", "--c-pp-reset": "ppReset",
+    "--c-pp-ink": "ppInk",
+    "--rgb-main": "main", "--rgb-shadow": "shadow", "--rgb-exp": "exp2",
+    "--rgb-bg-glow": "bgGlow", "--rgb-pp-scan": "ppScan", "--rgb-pp-line": "ppLine",
+    "--rgb-pp-acc": "ppAcc", "--rgb-pp-reset": "ppReset",
+    "--rgb-pp-dark": "ppDark", "--rgb-pp-shadow": "ppShadow"
+  };
+
+  function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+  // #rrggbb → [色相 0-360, 彩度 0-1, 明るさ 0-1]
+  function hexToHsl(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+    if (!m) { return null; }
+    var n = parseInt(m[1], 16);
+    var r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+    var mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    var l = (mx + mn) / 2, h = 0, s = 0;
+    if (d) {
+      s = d / (1 - Math.abs(2 * l - 1));
+      if (mx === r)      { h = 60 * ((((g - b) / d) % 6 + 6) % 6); }
+      else if (mx === g) { h = 60 * ((b - r) / d + 2); }
+      else               { h = 60 * ((r - g) / d + 4); }
+    }
+    return [h, s, l];
+  }
+
+  function hslToRgb(h, s, l) {
+    var c = (1 - Math.abs(2 * l - 1)) * s;
+    var hp = ((h % 360) + 360) % 360 / 60;
+    var x = c * (1 - Math.abs(hp % 2 - 1));
+    var m = l - c / 2, r = 0, g = 0, b = 0;
+    if      (hp < 1) { r = c; g = x; }
+    else if (hp < 2) { r = x; g = c; }
+    else if (hp < 3) { g = c; b = x; }
+    else if (hp < 4) { g = x; b = c; }
+    else if (hp < 5) { r = x; b = c; }
+    else             { r = c; b = x; }
+    return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+  }
+
+  function rgbToHex(rgb) {
+    return "#" + rgb.map(function (v) {
+      return ("0" + Math.max(0, Math.min(255, v)).toString(16)).slice(-2);
+    }).join("");
+  }
+
+  /* 選んだ色から全色を作る。返り値は
+     { main: "#...", mainRgb: "124, 34, 48", ... } の形 */
+  function buildPalette(hex) {
+    var hsl = hexToHsl(hex) || hexToHsl(BASE_COLOR);
+    var hue = hsl[0];
+    var sat = hsl[1];
+    var out = {};
+
+    Object.keys(PALETTE_SPEC).forEach(function (key) {
+      var spec = PALETTE_SPEC[key];
+      var rgb  = hslToRgb(hue, clamp01(spec[0] * sat), spec[1]);
+      out[key] = rgbToHex(rgb);
+      out[key + "Rgb"] = rgb.join(", ");
+    });
+
+    return out;
+  }
+
+  var themeColor = BASE_COLOR;
+  var P = buildPalette(BASE_COLOR);   // 書き出し（canvas）でも同じ色を使う
 
   /* =================================================================
      1. 写真挿入
@@ -1200,6 +1783,12 @@
     "backSchool"      // 裏面の校名
   ].map(function (id) { return document.getElementById(id); });
 
+  // 裏面 2（心構えと通学方法記録）は数が多いので、まとめて拾う
+  var back2Editables = Array.prototype.slice.call(
+    cardBack2.querySelectorAll("[contenteditable]"));
+
+  editables = editables.concat(back2Editables);
+
   var stampEl     = document.getElementById("stampEl");
   var stampSchool = document.getElementById("stampSchool");
   var backSchool  = document.getElementById("backSchool");
@@ -1240,7 +1829,8 @@
     });
 
     el.addEventListener("blur", function () {
-      if (el.textContent.trim() === "") {
+      // data-blank-ok が付いた欄（裏面 2 の記入欄）は空のままにしておく
+      if (el.textContent.trim() === "" && !el.hasAttribute("data-blank-ok")) {
         el.textContent = el.getAttribute("data-default");
         if (el === stampEl) { fitStampFont(); }
         if (el === stampSchool || el === backSchool) { syncSchoolName(el); }
@@ -1646,8 +2236,8 @@
 
   function refreshEmblems() {
     // 透かしは文字の読みやすさを優先して斜線を省く
-    paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff", true);
-    paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", "#7a2130");
+    paintCrestCanvas(document.getElementById("crestWatermark"), 156, P.main, "#ffffff", true);
+    paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", P.crestBg);
     if (typeof buildAppIcons === "function") { buildAppIcons(); }
   }
 
@@ -1758,16 +2348,71 @@
   var cardFlip = document.getElementById("cardFlip");
   var tabFront = document.getElementById("tabFront");
   var tabBack  = document.getElementById("tabBack");
+  var tabBack2 = document.getElementById("tabBack2");
 
   function showSide(side) {
-    var back = (side === "back");
-    cardFlip.classList.toggle("flipped", back);
-    tabBack.classList.toggle("active", back);
-    tabFront.classList.toggle("active", !back);
+    var isBack = (side === "back" || side === "back2");
+    cardFlip.classList.toggle("flipped", isBack);
+    cardFlip.classList.toggle("show-back2", side === "back2");
+    tabFront.classList.toggle("active", side === "front");
+    tabBack.classList.toggle("active", side === "back");
+    tabBack2.classList.toggle("active", side === "back2");
   }
 
   tabFront.addEventListener("click", function () { showSide("front"); });
-  tabBack.addEventListener("click", function () { showSide("back"); });
+  tabBack.addEventListener("click",  function () { showSide("back"); });
+  tabBack2.addEventListener("click", function () { showSide("back2"); });
+
+  /* =================================================================
+     5.5 色合いの切り替え
+     ================================================================= */
+  var swatchWrap  = document.getElementById("swatches");
+  var themeInput  = document.getElementById("themeColor");
+  var themeNowEl  = document.getElementById("themeNow");
+  var themeMeta   = document.querySelector('meta[name="theme-color"]');
+
+  function applyPalette() {
+    var root = document.documentElement.style;
+    Object.keys(CSS_VARS).forEach(function (name) {
+      var key = CSS_VARS[name];
+      root.setProperty(name, name.indexOf("--rgb-") === 0 ? P[key + "Rgb"] : P[key]);
+    });
+    if (themeMeta) { themeMeta.setAttribute("content", P.main); }
+  }
+
+  function markActiveSwatch() {
+    Array.prototype.forEach.call(swatchWrap.querySelectorAll(".swatch"), function (el) {
+      el.classList.toggle("active",
+        (el.getAttribute("data-color") || "").toLowerCase() === themeColor.toLowerCase());
+    });
+  }
+
+  function swatchName(hex) {
+    var found = swatchWrap.querySelector('[data-color="' + hex.toLowerCase() + '"]');
+    return found ? found.getAttribute("data-name") : hex.toUpperCase();
+  }
+
+  /* 色を決めて画面全体に反映する。quiet のときは保存しない（復元時） */
+  function setTheme(hex, quiet) {
+    if (!hexToHsl(hex)) { return; }
+    themeColor = hex.toLowerCase();
+    P = buildPalette(themeColor);
+
+    applyPalette();
+    markActiveSwatch();
+    themeNowEl.textContent = swatchName(themeColor);
+    if (themeInput.value.toLowerCase() !== themeColor) { themeInput.value = themeColor; }
+
+    refreshEmblems();     // 校章とアプリアイコンを新しい色で描き直す
+    if (!quiet) { scheduleSave(); }
+  }
+
+  swatchWrap.addEventListener("click", function (e) {
+    var btn = e.target.closest ? e.target.closest(".swatch[data-color]") : null;
+    if (btn) { setTheme(btn.getAttribute("data-color")); }
+  });
+
+  themeInput.addEventListener("input", function () { setTheme(themeInput.value); });
 
   /* =================================================================
      6. PRIVATE POINT（カウンターアニメーション付き）
@@ -1977,6 +2622,13 @@
 
   function textOf(id) { return document.getElementById(id).textContent.trim(); }
 
+  // 裏面 2 は欄が多いので { id: 文字 } の形でまとめて出し入れする
+  function back2Texts() {
+    var out = {};
+    back2Editables.forEach(function (el) { out[el.id] = el.textContent.trim(); });
+    return out;
+  }
+
   function saveAll() {
     saveTimer = null;
     if (!storageAvailable) { return; }
@@ -1995,7 +2647,9 @@
       point:  currentPoint,
       photo:  photoData,
       logo:   logoSourceData,
-      logoMono: logoMono
+      logoMono: logoMono,
+      theme:  themeColor,
+      back2:  back2Texts()
     };
 
     try {
@@ -2067,6 +2721,15 @@
 
     fitStampFont();
 
+    // 裏面 2（空欄で保存されている欄もそのまま空欄に戻す）
+    if (data.back2 && typeof data.back2 === "object") {
+      back2Editables.forEach(function (el) {
+        if (typeof data.back2[el.id] === "string") { el.textContent = data.back2[el.id]; }
+      });
+    }
+
+    if (typeof data.theme === "string") { setTheme(data.theme, true); }
+
     renderBarcode(textOf("valId"));
 
     if (typeof data.point === "number" && isFinite(data.point)) {
@@ -2107,6 +2770,7 @@
 
     editables.forEach(function (el) { el.textContent = el.getAttribute("data-default"); });
     fitStampFont();
+    setTheme(BASE_COLOR, true);
     renderBarcode(textOf("valId"));
 
     if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
@@ -2134,6 +2798,7 @@
 
   var btnExportFront = document.getElementById("btnExportFront");
   var btnExportBack  = document.getElementById("btnExportBack");
+  var btnExportBack2 = document.getElementById("btnExportBack2");
   var exportStatus   = document.getElementById("exportStatus");
   var exportBox      = document.getElementById("exportPreview");
   var exportImage    = document.getElementById("exportImage");
@@ -2265,14 +2930,14 @@
     ctx.save();
     ctx.globalAlpha = 0.07;
     drawEmblem(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1,
-                wmR.w, wmR.h, "#7c2230", "#ffffff", true);
+                wmR.w, wmR.h, P.main, "#ffffff", true);
     ctx.restore();
 
     // ヘッダーの帯
     var hg = ctx.createLinearGradient(0, 0, 0, 30);
-    hg.addColorStop(0.00, "#8b2735");
-    hg.addColorStop(0.55, "#7c2230");
-    hg.addColorStop(1.00, "#6f1d29");
+    hg.addColorStop(0.00, P.light);
+    hg.addColorStop(0.55, P.main);
+    hg.addColorStop(1.00, P.deep);
     ctx.fillStyle = hg;
     ctx.fillRect(0, 0, CARD_W, 31);
 
@@ -2295,10 +2960,10 @@
       var sw = pR.w / s, sh = pR.h / s;
       ctx.drawImage(photoImg, (iw - sw) / 2, (ih - sh) / 2, sw, sh, pR.x, pR.y, pR.w, pR.h);
     } else {
-      ctx.fillStyle = "#faf7f8";
+      ctx.fillStyle = P.paper1;
       ctx.fillRect(pR.x, pR.y, pR.w, pR.h);
       ctx.save();
-      ctx.strokeStyle = "#f2ebed";
+      ctx.strokeStyle = P.paper2;
       ctx.lineWidth = 6;
       ctx.translate(pR.x, pR.y);
       ctx.rotate(Math.PI / 4);
@@ -2310,12 +2975,12 @@
       }
       ctx.restore();
       drawText(ctx, "PHOTO", pR.x + pR.w / 2, pR.y + pR.h / 2 + 3, {
-        size: 11, weight: "700", color: "#c3aeb3", spacing: 2, align: "center"
+        size: 11, weight: "700", color: P.mute2, spacing: 2, align: "center"
       });
     }
     ctx.restore();
 
-    ctx.strokeStyle = "#b09aa0";
+    ctx.strokeStyle = P.frame;
     ctx.lineWidth = 1;
     ctx.strokeRect(pR.x + 0.5, pR.y + 0.5, pR.w - 1, pR.h - 1);
 
@@ -2333,7 +2998,7 @@
     // --- 区切り線 ---
     ["rule1", "rule2"].forEach(function (id) {
       var r = rectOf(document.getElementById(id), cardFront);
-      ctx.fillStyle = "#d8c4c8";
+      ctx.fillStyle = P.rule;
       ctx.fillRect(r.x + 1, r.y + 1, r.w, 1);
     });
 
@@ -2345,7 +3010,7 @@
     bR.x += 1; bR.y += 1;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(bR.x, bR.y, bR.w, bR.h);
-    ctx.strokeStyle = "#d8c4c8";
+    ctx.strokeStyle = P.rule;
     ctx.lineWidth = 1;
     ctx.strokeRect(bR.x + 0.5, bR.y + 0.5, bR.w - 1, bR.h - 1);
 
@@ -2353,7 +3018,7 @@
     ctx.beginPath();
     ctx.rect(bR.x + 1, bR.y + 1, bR.w - 2, bR.h - 2);
     ctx.clip();
-    ctx.fillStyle = "#241a1c";
+    ctx.fillStyle = P.bar;
     var bx = bR.x + 4;
     for (var i = 0; i < barcodeBars.length; i++) {
       if (barcodeBars[i].ink) { ctx.fillRect(bx, bR.y + 3, barcodeBars[i].w, bR.h - 6); }
@@ -2397,7 +3062,7 @@
     ctx.restore();   // クリップ解除
 
     // カードの枠
-    ctx.strokeStyle = "#7c2230";
+    ctx.strokeStyle = P.main;
     ctx.lineWidth = 1;
     roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
     ctx.stroke();
@@ -2415,15 +3080,15 @@
     ctx.clip();
 
     var bg = ctx.createLinearGradient(0, 0, CARD_W * 0.6, CARD_H);
-    bg.addColorStop(0.00, "#8b2735");
-    bg.addColorStop(0.52, "#7c2230");
-    bg.addColorStop(1.00, "#661a26");
+    bg.addColorStop(0.00, P.light);
+    bg.addColorStop(0.52, P.main);
+    bg.addColorStop(1.00, P.deeper);
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, CARD_W, CARD_H);
 
     var cR = rectOf(document.getElementById("crestBack"), cardBack);
     drawEmblem(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1,
-                cR.w, cR.h, "#ffffff", "#7a2130");
+                cR.w, cR.h, "#ffffff", P.crestBg);
 
     var schoolEl = document.querySelector(".back-school");
     var schoolR  = rectOf(schoolEl, cardBack);
@@ -2436,7 +3101,91 @@
 
     ctx.restore();
 
-    ctx.strokeStyle = "#6f1d29";
+    ctx.strokeStyle = P.deep;
+    ctx.lineWidth = 1;
+    roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
+    ctx.stroke();
+
+    return made.canvas;
+  }
+
+  /* --------------------------- 裏面 2 ---------------------------
+     心構えと通学方法記録。枠線は DOM 上の要素をそのまま矩形として
+     写すので、画面の表と書き出しの表がずれない。                 */
+  function renderBack2(scale) {
+    var made = newCardCanvas(scale);
+    var ctx = made.ctx;
+
+    ctx.save();
+    roundRectPath(ctx, 0, 0, CARD_W, CARD_H, 10);
+    ctx.clip();
+
+    // 用紙
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CARD_W, CARD_H);
+
+    // 上段の帯
+    var band = rectOf(cardBack2.querySelector(".b2-band"), cardBack2);
+    var bg = ctx.createLinearGradient(0, 0, 0, band.h + 1);
+    bg.addColorStop(0.00, P.light);
+    bg.addColorStop(0.55, P.main);
+    bg.addColorStop(1.00, P.deep);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, CARD_W, band.h + 1);
+
+    drawEl(ctx, document.getElementById("b2Title"), cardBack2, {
+      align: "center", color: "#ffffff", dx: 1
+    });
+
+    // 心構えの見出し記号（45 度に傾けた小さな四角）
+    Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-mk"), function (mk) {
+      var r = rectOf(mk, cardBack2);
+      ctx.save();
+      ctx.translate(r.x + r.w / 2 + 1, r.y + r.h / 2 + 1);
+      ctx.rotate(Math.PI / 4);
+      ctx.fillStyle = P.main;
+      ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
+      ctx.restore();
+    });
+
+    // 心構えの本文
+    Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-item"), function (el) {
+      drawEl(ctx, el, cardBack2, { dx: 1 });
+    });
+
+    // 上下段の区切り
+    var split = rectOf(cardBack2.querySelector(".b2-split"), cardBack2);
+    ctx.fillStyle = P.rule;
+    ctx.fillRect(split.x + 1, split.y + 1, split.w, split.h);
+
+    // 通学方法記録の見出し
+    drawEl(ctx, document.getElementById("b2RecTitle"), cardBack2, { dx: 1 });
+
+    // 表の見出し行の下地
+    Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-head-bg"), function (el) {
+      var r = rectOf(el, cardBack2);
+      ctx.fillStyle = P.paper2;
+      ctx.fillRect(r.x + 1, r.y + 1, r.w, r.h);
+    });
+
+    // 表の枠線
+    Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-grid"), function (el) {
+      var r = rectOf(el, cardBack2);
+      ctx.fillStyle = P.frame;
+      ctx.fillRect(r.x + 1, r.y + 1, r.w, r.h);
+    });
+
+    // 記入欄（見出しは中央、記入行は左寄せ。空欄はそのまま空欄で書き出す）
+    Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-cell"), function (el) {
+      if (!el.textContent.trim()) { return; }
+      var head = el.classList.contains("head");
+      drawEl(ctx, el, cardBack2, head ? { align: "center", dx: 1 } : { dx: 4 });
+    });
+
+    ctx.restore();   // クリップ解除
+
+    // カードの枠
+    ctx.strokeStyle = P.main;
     ctx.lineWidth = 1;
     roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
     ctx.stroke();
@@ -2459,16 +3208,23 @@
     return "学生証_" + name + "_" + side + ".png";
   }
 
+  var SIDES = {
+    front: { btn: btnExportFront, label: "表面",  suffix: "表",  render: renderFront },
+    back:  { btn: btnExportBack,  label: "裏面",  suffix: "裏",  render: renderBack },
+    back2: { btn: btnExportBack2, label: "裏面2", suffix: "裏2", render: renderBack2 }
+  };
+
   function exportSide(side) {
-    var btn = (side === "back") ? btnExportBack : btnExportFront;
-    var label = (side === "back") ? "裏面" : "表面";
+    var conf  = SIDES[side] || SIDES.front;
+    var btn   = conf.btn;
+    var label = conf.label;
 
     btn.disabled = true;
     setExportStatus(label + "の画像を作成中…", "");
 
     var dataUrl, blob;
     try {
-      var canvas = (side === "back") ? renderBack(EXPORT_SCALE) : renderFront(EXPORT_SCALE);
+      var canvas = conf.render(EXPORT_SCALE);
       dataUrl = canvas.toDataURL("image/png");
       blob    = dataUrlToBlob(dataUrl);
     } catch (err) {
@@ -2477,7 +3233,7 @@
       return;
     }
 
-    var fileName = buildFileName(side === "back" ? "裏" : "表");
+    var fileName = buildFileName(conf.suffix);
 
     exportImage.src = dataUrl;
     exportBox.classList.add("shown");
@@ -2526,7 +3282,8 @@
   }
 
   btnExportFront.addEventListener("click", function () { exportSide("front"); });
-  btnExportBack.addEventListener("click", function () { exportSide("back"); });
+  btnExportBack.addEventListener("click",  function () { exportSide("back"); });
+  btnExportBack2.addEventListener("click", function () { exportSide("back2"); });
 
   /* =================================================================
      10. ホーム画面アプリ（PWA）用のアイコンとマニフェスト
@@ -2538,8 +3295,8 @@
     var ctx = canvas.getContext("2d");
 
     var grd = ctx.createLinearGradient(0, 0, size, size);
-    grd.addColorStop(0, "#8b2735");
-    grd.addColorStop(1, "#661a26");
+    grd.addColorStop(0, P.light);
+    grd.addColorStop(1, P.deeper);
     ctx.fillStyle = grd;
     ctx.fillRect(0, 0, size, size);
 
@@ -2549,7 +3306,7 @@
     if (logo) {
       drawLogoFit(ctx, logo, size / 2, size / 2, inner, inner);
     } else {
-      drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, "#7a2130");
+      drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, P.crestBg);
     }
 
     return canvas.toDataURL("image/png");
@@ -2570,8 +3327,8 @@
         scope: location.href.replace(/[^/]*$/, ""),
         display: "standalone",
         orientation: "portrait",
-        background_color: "#efe9e8",
-        theme_color: "#7c2230",
+        background_color: P.bgTop,
+        theme_color: P.main,
         icons: [
           { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
           { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
