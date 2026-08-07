@@ -424,9 +424,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 8.5px;
+    font-size: 11px;
     font-weight: 800;
-    line-height: 1.05;
+    line-height: 1.0;
     letter-spacing: 0;
     text-align: center;
     transform: rotate(-8deg);
@@ -729,6 +729,78 @@
   .photo-status.ok { color: #1f7a4d; font-weight: 700; }
   .photo-status.ng { color: #b8342c; font-weight: 700; }
 
+  /* ---------- 画像として保存 ---------- */
+  .export-row {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.06em;
+    color: #ffffff;
+    background: linear-gradient(180deg, #3d4f6b 0%, #23334c 100%);
+    border: 1px solid rgba(20, 41, 74, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 3px 8px rgba(35, 51, 76, 0.28);
+    cursor: pointer;
+  }
+
+  .export-btn:active { transform: translateY(1px); filter: brightness(0.95); }
+  .export-btn:disabled { opacity: 0.6; cursor: default; }
+
+  .export-status {
+    flex: 1 1 140px;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #56687f;
+    word-break: break-all;
+  }
+
+  .export-status.ok { color: #1f7a4d; font-weight: 700; }
+  .export-status.ng { color: #b8342c; font-weight: 700; }
+
+  .export-preview {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(120, 156, 200, 0.45);
+    display: none;
+  }
+
+  .export-preview.shown { display: block; }
+
+  .export-preview img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(23, 48, 84, 0.18);
+  }
+
+  .export-preview p {
+    margin: 8px 0 0;
+    font-size: 11px;
+    line-height: 1.7;
+    color: #46586f;
+  }
+
   /* ホーム画面から起動（standalone）したときはノッチ／ホームバーを避ける */
   @media all and (display-mode: standalone) {
     body {
@@ -862,7 +934,7 @@
           </div>
           <div class="principal">
             <div class="txt">高度育成高等学校<br>学校長　印</div>
-            <div class="stamp">学校長<br>之印</div>
+            <div class="stamp" id="stampEl">坂<br>柳</div>
           </div>
         </div>
 
@@ -878,6 +950,17 @@
   <div class="photo-tools">
     <label class="pick-btn" for="photoInput">写真を選択</label>
     <span class="photo-status" id="photoStatus">写真は未設定です。</span>
+  </div>
+
+  <!-- 学生証を画像（PNG）として書き出す -->
+  <div class="export-row">
+    <button type="button" class="export-btn" id="btnExport">画像として保存</button>
+    <span class="export-status" id="exportStatus">カード部分を PNG（1140×720）で書き出します。</span>
+  </div>
+
+  <div class="export-preview" id="exportPreview">
+    <img id="exportImage" alt="書き出した学生証の画像">
+    <p id="exportHelp"></p>
   </div>
 
   <!-- ========================= PRIVATE POINT ========================= -->
@@ -1178,19 +1261,31 @@
     };
   }
 
-  function renderBarcode(text) {
+  // 画面表示と画像書き出しで同じ縞模様を使うため、パターンを配列で持つ
+  var barcodeBars = [];
+
+  function buildBarcodePattern(text) {
     var rnd = makeRandom(hashString(text || "0"));
-    var html = "";
-    // 開始ガード
-    html += '<span style="width:2px"></span><span style="width:1px;background:transparent"></span>';
+    var bars = [];
+    bars.push({ w: 2, ink: true });               // 開始ガード
+    bars.push({ w: 1, ink: false });
     for (var i = 0; i < 52; i++) {
-      var w = 1 + Math.floor(rnd() * 3);          // 1〜3px の黒バー
-      var gap = 1 + Math.floor(rnd() * 2);        // 1〜2px の隙間
-      html += '<span style="width:' + w + 'px"></span>';
-      html += '<span style="width:' + gap + 'px;background:transparent"></span>';
+      bars.push({ w: 1 + Math.floor(rnd() * 3), ink: true });   // 1〜3px の黒バー
+      bars.push({ w: 1 + Math.floor(rnd() * 2), ink: false });  // 1〜2px の隙間
     }
-    // 終了ガード
-    html += '<span style="width:2px"></span>';
+    bars.push({ w: 2, ink: true });               // 終了ガード
+    return bars;
+  }
+
+  function renderBarcode(text) {
+    barcodeBars = buildBarcodePattern(text);
+
+    var html = "";
+    for (var i = 0; i < barcodeBars.length; i++) {
+      var b = barcodeBars[i];
+      html += '<span style="width:' + b.w + 'px' +
+              (b.ink ? "" : ";background:transparent") + '"></span>';
+    }
     barcodeEl.innerHTML = html;
 
     var caption = String(text).toUpperCase().replace(/\s+/g, "");
@@ -1378,15 +1473,17 @@
   /* =================================================================
      5. 画面幅に合わせてカードを縮小（スマホ対応）
      ================================================================= */
-  var scaler   = document.getElementById("cardScaler");
-  var CARD_W   = 380;
-  var CARD_H   = 240;
+  var scaler    = document.getElementById("cardScaler");
+  var CARD_W    = 380;
+  var CARD_H    = 240;
+  var cardScale = 1;      // 現在の縮小率（画像書き出しの座標計算で使う）
 
   function fitCard() {
     var stage = scaler.parentNode;
     var available = stage.clientWidth;
     if (!available) { return; }
     var scale = Math.min(1, available / CARD_W);
+    cardScale = scale;
 
     scaler.style.transform = "scale(" + scale + ")";
     scaler.style.width  = CARD_W + "px";
@@ -1638,6 +1735,417 @@
   } catch (err) {
     // アイコン生成に失敗してもアプリ本体の動作には影響させない
   }
+
+  /* =================================================================
+     8. 学生証を画像（PNG）として書き出す
+        外部ライブラリを使わず、カードと同じ絵を canvas に描き直す。
+        文字や写真の位置は実際の DOM から測るので、名前の長さが
+        変わっても画面の見た目とずれない。
+     ================================================================= */
+  var EXPORT_SCALE = 3;                       // 380×240 → 1140×720
+  var FONT_FAMILY  = '"Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic, ' +
+                     'Meiryo, "Noto Sans JP", sans-serif';
+  var MONO_FAMILY  = '"SFMono-Regular", Menlo, Consolas, "Courier New", monospace';
+
+  var idCardEl     = document.getElementById("idCard");
+  var btnExport    = document.getElementById("btnExport");
+  var exportStatus = document.getElementById("exportStatus");
+  var exportBox    = document.getElementById("exportPreview");
+  var exportImage  = document.getElementById("exportImage");
+  var exportHelp   = document.getElementById("exportHelp");
+
+  function setExportStatus(msg, type) {
+    exportStatus.textContent = msg;
+    exportStatus.className = "export-status" + (type ? " " + type : "");
+  }
+
+  // 要素の位置をカード左上からの座標（縮小前の px）で取得する
+  function rectOf(el) {
+    var r = el.getBoundingClientRect();
+    var c = idCardEl.getBoundingClientRect();
+    var s = cardScale || 1;
+    return {
+      x: (r.left - c.left) / s,
+      y: (r.top  - c.top)  / s,
+      w: r.width  / s,
+      h: r.height / s
+    };
+  }
+
+  function styleOf(el) {
+    var cs = window.getComputedStyle(el);
+    var ls = parseFloat(cs.letterSpacing);
+    return {
+      size:    parseFloat(cs.fontSize) || 12,
+      weight:  cs.fontWeight || "400",
+      color:   cs.color || "#000",
+      spacing: isFinite(ls) ? ls : 0
+    };
+  }
+
+  function roundRectPath(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
+
+  /* letter-spacing を再現するため 1 文字ずつ描く。
+     ctx.letterSpacing は対応ブラウザが限られるので使わない */
+  function drawText(ctx, text, x, y, opt) {
+    opt = opt || {};
+    ctx.font = (opt.weight || "400") + " " + opt.size + "px " +
+               (opt.family || FONT_FAMILY);
+    ctx.fillStyle = opt.color || "#000";
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "left";
+
+    var spacing = opt.spacing || 0;
+    var chars = String(text).split("");
+    var total = 0, i;
+
+    for (i = 0; i < chars.length; i++) {
+      total += ctx.measureText(chars[i]).width + spacing;
+    }
+
+    var startX = x;
+    if (opt.align === "right")  { startX = x - total; }
+    if (opt.align === "center") { startX = x - total / 2; }
+
+    var cx = startX;
+    for (i = 0; i < chars.length; i++) {
+      ctx.fillText(chars[i], cx, y);
+      cx += ctx.measureText(chars[i]).width + spacing;
+    }
+    return total;
+  }
+
+  // 1 行の要素を、その矩形の縦中央に合わせて描く
+  function drawElementText(ctx, el, opt) {
+    var r  = rectOf(el);
+    var st = styleOf(el);
+    var o  = {
+      size:    st.size,
+      weight:  st.weight,
+      color:   st.color,
+      spacing: st.spacing,
+      family:  (opt && opt.family) || FONT_FAMILY
+    };
+    // padding を含めた矩形の中で、文字の見た目が中央に来る位置
+    var baseline = r.y + r.h / 2 + st.size * 0.36;
+    var x = r.x + ((opt && opt.padLeft) || 0);
+    drawText(ctx, el.textContent.trim(), x, baseline, o);
+  }
+
+  function renderCardCanvas(scale) {
+    var W = CARD_W, H = CARD_H;
+    var canvas = document.createElement("canvas");
+    canvas.width  = Math.round(W * scale);
+    canvas.height = Math.round(H * scale);
+    var ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+
+    /* --- 角丸でクリップ --- */
+    ctx.save();
+    roundRectPath(ctx, 0, 0, W, H, 14);
+    ctx.clip();
+
+    /* --- 背景グラデーション（135deg） --- */
+    var bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0.00, "#ffffff");
+    bg.addColorStop(0.38, "#f4f9ff");
+    bg.addColorStop(0.72, "#e6f0fb");
+    bg.addColorStop(1.00, "#dbe9f8");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    /* --- 斜めの地紋（-45度の細い白線） --- */
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.lineWidth = 1;
+    ctx.translate(W / 2, H / 2);
+    ctx.rotate(-Math.PI / 4);
+    var span = (W + H);
+    for (var g = -span; g < span; g += 10) {
+      ctx.beginPath();
+      ctx.moveTo(g, -span);
+      ctx.lineTo(g, span);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    /* --- 右下の校章風ウォーターマーク --- */
+    ctx.save();
+    ctx.strokeStyle = "rgba(70,122,184,0.07)";
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.arc(326, 198, 82, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(70,122,184,0.06)";
+    ctx.beginPath();
+    ctx.arc(326, 198, 60, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    /* --- ヘッダー --- */
+    drawElementText(ctx, document.querySelector(".school-name"));
+
+    var enEl = document.querySelector(".header-en");
+    var enR  = rectOf(enEl);
+    var enS  = styleOf(enEl);
+    drawText(ctx, enEl.textContent.trim(), enR.x + enR.w, enR.y + enR.h / 2 + enS.size * 0.36, {
+      size: enS.size, weight: enS.weight, color: enS.color,
+      spacing: enS.spacing, align: "right"
+    });
+
+    /* --- ヘッダー下の青いライン --- */
+    var lineR = rectOf(document.querySelector(".header-line"));
+    var lg = ctx.createLinearGradient(lineR.x, 0, lineR.x + lineR.w, 0);
+    lg.addColorStop(0.00, "#1f5fa8");
+    lg.addColorStop(0.55, "#3f88d3");
+    lg.addColorStop(1.00, "rgba(63,136,211,0.15)");
+    ctx.fillStyle = lg;
+    roundRectPath(ctx, lineR.x, lineR.y, lineR.w, lineR.h, 1);
+    ctx.fill();
+
+    /* --- 写真エリア --- */
+    var pR = rectOf(photoArea);
+    ctx.save();
+    roundRectPath(ctx, pR.x, pR.y, pR.w, pR.h, 4);
+    ctx.clip();
+
+    if (photoImg && photoImg.naturalWidth) {
+      // アスペクト比を保って枠いっぱいに収める（object-fit: cover と同じ計算）
+      var iw = photoImg.naturalWidth;
+      var ih = photoImg.naturalHeight;
+      var s  = Math.max(pR.w / iw, pR.h / ih);
+      var sw = pR.w / s;
+      var sh = pR.h / s;
+      ctx.drawImage(photoImg, (iw - sw) / 2, (ih - sh) / 2, sw, sh,
+                    pR.x, pR.y, pR.w, pR.h);
+    } else {
+      // 未設定時は画面と同じ斜めストライプ
+      ctx.fillStyle = "#f7fbff";
+      ctx.fillRect(pR.x, pR.y, pR.w, pR.h);
+      ctx.save();
+      ctx.strokeStyle = "#eef5fd";
+      ctx.lineWidth = 6;
+      ctx.translate(pR.x, pR.y);
+      ctx.rotate(Math.PI / 4);
+      for (var q = -pR.h; q < pR.w + pR.h; q += 12) {
+        ctx.beginPath();
+        ctx.moveTo(q, -pR.h);
+        ctx.lineTo(q, pR.w + pR.h);
+        ctx.stroke();
+      }
+      ctx.restore();
+      drawText(ctx, "PHOTO", pR.x + pR.w / 2, pR.y + pR.h / 2 + 3, {
+        size: 11, weight: "700", color: "#a9c0d8", spacing: 2, align: "center"
+      });
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = "#9fb8d4";
+    ctx.lineWidth = 1;
+    roundRectPath(ctx, pR.x + 0.5, pR.y + 0.5, pR.w - 1, pR.h - 1, 4);
+    ctx.stroke();
+
+    /* --- 右側の 3 項目 --- */
+    var fields = [
+      { label: "#field-id .label",    value: "#studentId",    mono: true  },
+      { label: "#field-name .label",  value: "#studentName",  mono: false },
+      { label: "#field-birth .label", value: "#studentBirth", mono: false }
+    ];
+
+    fields.forEach(function (f) {
+      drawElementText(ctx, document.querySelector(f.label));
+
+      var vEl = document.querySelector(f.value);
+      var vR  = rectOf(vEl);
+      var vS  = styleOf(vEl);
+
+      // 値の下の破線
+      ctx.save();
+      ctx.strokeStyle = "rgba(90,123,163,0.45)";
+      ctx.lineWidth = 1;
+      if (ctx.setLineDash) { ctx.setLineDash([2, 2]); }
+      ctx.beginPath();
+      ctx.moveTo(vR.x, vR.y + vR.h - 0.5);
+      ctx.lineTo(vR.x + vR.w, vR.y + vR.h - 0.5);
+      ctx.stroke();
+      ctx.restore();
+
+      drawText(ctx, vEl.textContent.trim(), vR.x + 4, vR.y + vR.h / 2 + vS.size * 0.34, {
+        size: vS.size, weight: vS.weight, color: vS.color,
+        spacing: vS.spacing, family: f.mono ? MONO_FAMILY : FONT_FAMILY
+      });
+    });
+
+    /* --- バーコード --- */
+    var bR = rectOf(barcodeEl);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(bR.x, bR.y, bR.w, bR.h);
+    ctx.strokeStyle = "rgba(120,156,200,0.5)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bR.x + 0.5, bR.y + 0.5, bR.w - 1, bR.h - 1);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(bR.x + 1, bR.y + 1, bR.w - 2, bR.h - 2);
+    ctx.clip();
+    ctx.fillStyle = "#16233a";
+    var bx = bR.x + 3;
+    for (var i = 0; i < barcodeBars.length; i++) {
+      var bar = barcodeBars[i];
+      if (bar.ink) { ctx.fillRect(bx, bR.y + 2, bar.w, bR.h - 4); }
+      bx += bar.w + 1;                 // gap: 1px（画面の flex gap と同じ）
+    }
+    ctx.restore();
+
+    drawElementText(ctx, barcodeCaption, { family: MONO_FAMILY });
+
+    /* --- 学校長 印 --- */
+    var txtEl = document.querySelector(".principal .txt");
+    var txtR  = rectOf(txtEl);
+    var txtS  = styleOf(txtEl);
+    var lines = ["高度育成高等学校", "学校長　印"];
+    var lh = txtR.h / lines.length;
+    lines.forEach(function (line, idx) {
+      drawText(ctx, line, txtR.x, txtR.y + lh * idx + lh / 2 + txtS.size * 0.36, {
+        size: txtS.size, weight: txtS.weight, color: txtS.color, spacing: txtS.spacing
+      });
+    });
+
+    // 朱印（-8度傾けた赤い丸に縦書きの氏名）
+    var stampEl = document.getElementById("stampEl");
+    var sR = rectOf(stampEl);
+    var stampChars = stampEl.textContent.replace(/\s+/g, "").split("");
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.translate(sR.x + sR.w / 2, sR.y + sR.h / 2);
+    ctx.rotate(-8 * Math.PI / 180);
+    ctx.strokeStyle = "#c0392b";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(0, 0, sR.w / 2 - 0.8, 0, Math.PI * 2);
+    ctx.stroke();
+
+    var chSize = stampChars.length > 2 ? 8.5 : 11;
+    var chGap  = chSize * 1.0;
+    var top    = -((stampChars.length - 1) * chGap) / 2;
+    stampChars.forEach(function (ch, idx) {
+      drawText(ctx, ch, 0, top + chGap * idx + chSize * 0.36, {
+        size: chSize, weight: "800", color: "#c0392b", align: "center"
+      });
+    });
+    ctx.restore();
+
+    ctx.restore();   // クリップ解除
+
+    /* --- カードの外枠 --- */
+    ctx.strokeStyle = "rgba(120,156,200,0.55)";
+    ctx.lineWidth = 1;
+    roundRectPath(ctx, 0.5, 0.5, W - 1, H - 1, 14);
+    ctx.stroke();
+
+    return canvas;
+  }
+
+  // DataURL → Blob（同期処理。iOS の共有シートは操作直後にしか開けないため）
+  function dataUrlToBlob(dataUrl) {
+    var parts  = dataUrl.split(",");
+    var mime   = /:(.*?);/.exec(parts[0])[1];
+    var binary = atob(parts[1]);
+    var len    = binary.length;
+    var buf    = new Uint8Array(len);
+    for (var i = 0; i < len; i++) { buf[i] = binary.charCodeAt(i); }
+    return new Blob([buf], { type: mime });
+  }
+
+  function buildFileName() {
+    var name = document.getElementById("studentName").textContent.trim();
+    name = name.replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 24) || "student";
+    return "学生証_" + name + ".png";
+  }
+
+  function showPreview(dataUrl, helpText) {
+    exportImage.src = dataUrl;
+    exportHelp.textContent = helpText;
+    exportBox.classList.add("shown");
+  }
+
+  btnExport.addEventListener("click", function () {
+    btnExport.disabled = true;
+    setExportStatus("画像を作成中…", "");
+
+    var dataUrl, blob, file;
+    try {
+      dataUrl = renderCardCanvas(EXPORT_SCALE).toDataURL("image/png");
+      blob    = dataUrlToBlob(dataUrl);
+    } catch (err) {
+      setExportStatus("画像を作成できませんでした：" + err.message, "ng");
+      btnExport.disabled = false;
+      return;
+    }
+
+    var fileName = buildFileName();
+
+    // 1) 共有シート（iPhone はここから「画像を保存」で写真アプリに入る）
+    try {
+      file = new File([blob], fileName, { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        navigator.share({ files: [file], title: "学生証" }).then(function () {
+          setExportStatus("画像を書き出しました。", "ok");
+        })["catch"](function () {
+          // 共有をキャンセルした場合もここに来るため、保存手段は残しておく
+          setExportStatus("下のプレビューからも保存できます。", "");
+        });
+        showPreview(dataUrl, "共有が開かない場合は、この画像を長押し →『写真に追加』で保存できます。");
+        btnExport.disabled = false;
+        return;
+      }
+    } catch (err) {
+      // File が作れない環境ではダウンロードにフォールバック
+    }
+
+    // 2) ダウンロード（Android / PC）
+    var ok = false;
+    try {
+      var a = document.createElement("a");
+      if ("download" in a) {
+        var url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
+        ok = true;
+      }
+    } catch (err) {
+      ok = false;
+    }
+
+    // 3) どちらも使えない場合はプレビューから手動保存してもらう
+    showPreview(
+      dataUrl,
+      ok ? "保存先が分からない場合は、この画像を長押し（右クリック）でも保存できます。"
+         : "この画像を長押し（右クリック）→「画像を保存」で保存してください。"
+    );
+    setExportStatus(
+      ok ? "画像を保存しました（" + fileName + "）" : "下のプレビューから保存してください。",
+      ok ? "ok" : ""
+    );
+    btnExport.disabled = false;
+  });
 
 })();
 </script>
