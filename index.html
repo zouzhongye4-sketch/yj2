@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#eef4fb">
+<meta name="theme-color" content="#7c2230">
 <title>高度育成高等学校 学生証</title>
 
 <!-- ===== ホーム画面アプリ（PWA）としてインストールするための設定 ===== -->
@@ -12,11 +12,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="学生証">
 <meta name="application-name" content="学生証">
-<meta name="description" content="高度育成高等学校の学生証">
+<meta name="description" content="東京都高度育成高等学校の学生証">
 <!-- マニフェストとアイコンは JS から動的に生成して設定（1ファイル完結のため） -->
 <link rel="manifest" id="manifestLink">
 <link rel="apple-touch-icon" id="appleIcon">
 <link rel="icon" id="faviconLink">
+
 <style>
   /* ===================================================================
      全体設定
@@ -26,191 +27,148 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body {
-    margin: 0;
-    padding: 0;
-  }
-
-  html {
-    background: #cfd9e4;
-    overflow-x: hidden;
-  }
+  html, body { margin: 0; padding: 0; }
 
   body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 24px 12px 48px;
+    padding: 22px 12px 48px;
     background:
-      radial-gradient(1200px 600px at 50% -10%, #dfeaf7 0%, rgba(223,234,247,0) 60%),
-      linear-gradient(180deg, #e9eff6 0%, #cfd9e4 100%);
+      radial-gradient(1000px 500px at 50% -12%, #f3e9ea 0%, rgba(243,233,234,0) 62%),
+      linear-gradient(180deg, #efe9e8 0%, #d8cdcd 100%);
     background-attachment: fixed;
     /* 硬めのゴシック体 */
     font-family: "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3",
                  "Yu Gothic", "游ゴシック体", YuGothic, "Meiryo", メイリオ,
                  "Noto Sans JP", "Segoe UI", Arial, sans-serif;
     font-feature-settings: "palt" 1;
-    color: #17233a;
+    color: #2b2224;
   }
 
   .page-title {
-    font-size: 13px;
-    letter-spacing: 0.28em;
-    color: #5a6b83;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    color: #7c5b60;
     font-weight: 700;
-    margin: 0 0 16px;
+    margin: 0 0 14px;
     text-align: center;
   }
 
-  /* カードを画面幅に合わせて縮小するためのラッパ */
+  /* ===================================================================
+     カードの土台（表裏の 3D 反転）
+     =================================================================== */
   .card-stage {
     width: 100%;
     max-width: 380px;
     display: flex;
     justify-content: center;
+    perspective: 1400px;
   }
 
   .card-scaler {
     transform-origin: top center;
-    transition: transform 0.15s ease;
+    width: 380px;
+    height: 240px;
   }
 
-  /* ===================================================================
-     学生証カード本体（380 x 240）
-     =================================================================== */
-  .id-card {
+  .card-flip {
     position: relative;
     width: 380px;
     height: 240px;
-    border-radius: 14px;
-    padding: 12px 14px 10px;
+    transform-style: preserve-3d;
+    transition: transform 0.62s cubic-bezier(0.4, 0.1, 0.2, 1);
+    /* filter を付けると preserve-3d が無効化され裏返らなくなるため、
+       影は各面の box-shadow で付ける */
+  }
+
+  .card-flip.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 380px;
+    height: 240px;
+    border-radius: 10px;
     overflow: hidden;
-    /* ごく淡いブルーと白のグラデーション */
-    background:
-      linear-gradient(135deg, #ffffff 0%, #f4f9ff 38%, #e6f0fb 72%, #dbe9f8 100%);
-    border: 1px solid rgba(120, 156, 200, 0.55);
-    box-shadow:
-      0 10px 28px rgba(23, 48, 84, 0.22),
-      0 2px 6px rgba(23, 48, 84, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    display: flex;
-    flex-direction: column;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 10px 24px rgba(60, 26, 32, 0.3);
   }
 
-  /* 斜めの光沢・地紋 */
-  .id-card::before {
-    content: "";
+  /* ===================================================================
+     表面
+     =================================================================== */
+  .card-front {
+    background: #ffffff;
+    border: 1px solid #7c2230;
+  }
+
+  /* 上部のえんじ色の帯 */
+  .front-header {
     position: absolute;
-    inset: 0;
-    background:
-      repeating-linear-gradient(
-        -45deg,
-        rgba(255, 255, 255, 0) 0px,
-        rgba(255, 255, 255, 0) 9px,
-        rgba(255, 255, 255, 0.5) 10px,
-        rgba(255, 255, 255, 0) 11px
-      );
-    opacity: 0.5;
-    pointer-events: none;
+    left: 0;
+    top: 0;
+    width: 378px;
+    height: 30px;
+    background: linear-gradient(180deg, #8b2735 0%, #7c2230 55%, #6f1d29 100%);
   }
 
-  /* 右下の薄い校章風ウォーターマーク */
-  .id-card::after {
-    content: "";
+  .front-header-title {
     position: absolute;
-    right: -34px;
-    bottom: -46px;
-    width: 176px;
-    height: 176px;
-    border-radius: 50%;
-    border: 12px solid rgba(70, 122, 184, 0.07);
-    background:
-      radial-gradient(circle at 50% 50%, rgba(70, 122, 184, 0.06) 0 34%, rgba(70,122,184,0) 35%);
-    pointer-events: none;
-  }
-
-  /* ---------- ヘッダー ---------- */
-  .card-header {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .school-name {
-    font-size: 17px;
+    left: 0;
+    top: 0;
+    width: 378px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 15px;
     font-weight: 800;
-    letter-spacing: 0.10em;
-    color: #14294a;
-    white-space: nowrap;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.34em;
+    text-indent: 0.34em;   /* letter-spacing のぶん中央からずれるのを補正 */
   }
 
-  .header-en {
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.26em;
-    color: #4c7bb5;
-    white-space: nowrap;
+  /* 用紙の地紋（薄い校章の透かし） */
+  #crestWatermark {
+    position: absolute;
+    right: 14px;
+    top: 52px;
+    width: 156px;
+    height: 156px;
+    opacity: 0.05;
+    pointer-events: none;
   }
 
-  .header-line {
-    position: relative;
-    z-index: 2;
-    height: 2px;
-    margin: 5px 0 10px;
-    background: linear-gradient(90deg, #1f5fa8 0%, #3f88d3 55%, rgba(63, 136, 211, 0.15) 100%);
-    border-radius: 2px;
-    flex: 0 0 auto;
-  }
-
-  /* ---------- メインエリア ---------- */
-  .card-main {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    gap: 14px;
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
-  /* 写真エリア（左） */
+  /* 写真エリア */
   .photo-area {
-    position: relative;
-    width: 104px;
+    position: absolute;
+    left: 14px;
+    top: 42px;
+    width: 100px;
     height: 130px;
-    flex: 0 0 auto;
-    border: 1px solid #9fb8d4;
-    border-radius: 4px;
+    border: 1px solid #b09aa0;
     background:
-      repeating-linear-gradient(
-        45deg,
-        #f7fbff 0px, #f7fbff 6px,
-        #eef5fd 6px, #eef5fd 12px
-      );
+      repeating-linear-gradient(45deg,
+        #faf7f8 0px, #faf7f8 6px,
+        #f2ebed 6px, #f2ebed 12px);
     overflow: hidden;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
-  .photo-area:active {
-    border-color: #2f6fb8;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 0 0 3px rgba(63, 136, 211, 0.25);
-  }
+  .photo-area:active { border-color: #7c2230; }
 
   .photo-area img {
     width: 100%;
     height: 100%;
-    /* アスペクト比を維持して枠いっぱいにカバー */
-    object-fit: cover;
+    object-fit: cover;      /* アスペクト比を維持して枠いっぱいに */
     object-position: center;
     display: block;
   }
@@ -219,52 +177,45 @@
     text-align: center;
     padding: 6px;
     pointer-events: none;
-    user-select: none;
   }
 
   .photo-placeholder .icon {
     display: block;
-    width: 34px;
-    height: 28px;
-    margin: 0 auto 8px;
-    border: 2px solid #8fb0d4;
-    border-radius: 4px;
+    width: 32px;
+    height: 26px;
+    margin: 0 auto 7px;
+    border: 2px solid #b09aa0;
+    border-radius: 3px;
     position: relative;
   }
 
   .photo-placeholder .icon::before {
     content: "";
     position: absolute;
-    left: 4px;
-    right: 4px;
-    bottom: 3px;
-    height: 11px;
-    background: #8fb0d4;
+    left: 4px; right: 4px; bottom: 3px;
+    height: 10px;
+    background: #b09aa0;
     clip-path: polygon(0% 100%, 32% 22%, 55% 100%, 70% 55%, 100% 100%);
   }
 
   .photo-placeholder .icon::after {
     content: "";
     position: absolute;
-    top: 4px;
-    right: 5px;
-    width: 6px;
-    height: 6px;
+    top: 4px; right: 5px;
+    width: 5px; height: 5px;
     border-radius: 50%;
-    background: #8fb0d4;
+    background: #b09aa0;
   }
 
   .photo-placeholder .txt {
-    font-size: 9.5px;
+    font-size: 9px;
     line-height: 1.5;
-    color: #6d87a6;
-    letter-spacing: 0.02em;
+    color: #8d7278;
     font-weight: 600;
   }
 
   .photo-area.has-image .photo-placeholder { display: none; }
 
-  /* 写真クリア用の小さなボタン */
   .photo-clear {
     position: absolute;
     top: 3px;
@@ -273,7 +224,7 @@
     height: 18px;
     border: none;
     border-radius: 50%;
-    background: rgba(20, 41, 74, 0.62);
+    background: rgba(60, 26, 32, 0.62);
     color: #fff;
     font-size: 11px;
     line-height: 18px;
@@ -285,152 +236,306 @@
 
   .photo-area.has-image .photo-clear { display: block; }
 
-  /* 情報エリア（右） */
-  .info-area {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    padding-top: 2px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .field .label {
-    font-size: 8.5px;
+  /* 右側の項目 ------------------------------------------------------- */
+  .f-label {
+    position: absolute;
+    width: 52px;
+    font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: 0.18em;
-    color: #5a7ba3;
+    color: #6d4a50;
+    text-align: justify;
+    text-align-last: justify;   /* 均等割り付け（氏　名 のような字送り） */
+    line-height: 14px;
+    height: 14px;
   }
 
-  .field .value {
-    font-size: 15px;
+  .f-value {
+    position: absolute;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #14294a;
-    line-height: 1.35;
-    padding: 2px 4px;
-    border-bottom: 1px dashed rgba(90, 123, 163, 0.45);
-    border-radius: 2px;
-    outline: none;
+    color: #1d1719;
     white-space: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
+    outline: none;
     cursor: text;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    border-radius: 2px;
+    line-height: 20px;
+    height: 20px;
   }
 
-  .field .value::-webkit-scrollbar { display: none; }
-
-  .field .value:hover {
-    background: rgba(255, 255, 255, 0.7);
+  .f-value::-webkit-scrollbar { display: none; }
+  .f-value:hover { background: rgba(124, 34, 48, 0.05); }
+  .f-value:focus {
+    background: #fff8f9;
+    box-shadow: 0 0 0 2px rgba(124, 34, 48, 0.3);
   }
 
-  .field .value:focus {
-    background: #ffffff;
-    border-bottom-color: #2f6fb8;
-    box-shadow: 0 0 0 2px rgba(63, 136, 211, 0.22);
+  /* 氏名 */
+  #labName  { left: 126px; top: 48px; }
+  #valName  { left: 186px; top: 42px; width: 180px; font-size: 18px; height: 24px; line-height: 24px; letter-spacing: 0.04em; }
+  #valRoman { left: 186px; top: 66px; width: 180px; font-size: 10px; height: 14px; line-height: 14px; color: #5d4045; font-weight: 600; letter-spacing: 0.06em; }
+
+  /* 区切り線 */
+  .f-rule {
+    position: absolute;
+    left: 126px;
+    width: 240px;
+    height: 1px;
+    background: #d8c4c8;
   }
 
-  .field#field-id .value {
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
-    font-size: 14px;
-    letter-spacing: 0.10em;
+  #rule1 { top: 82px; }
+  #rule2 { top: 152px; }
+
+  /* 学籍番号・クラス・生年月日 */
+  #labId    { left: 126px; top: 90px; }
+  #valId    { left: 186px; top: 87px; width: 180px; font-size: 15px;
+              font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
+              letter-spacing: 0.06em; }
+  #labClass { left: 126px; top: 112px; }
+  #valClass { left: 186px; top: 109px; width: 180px; font-size: 15px; letter-spacing: 0.06em; }
+  #labBirth { left: 126px; top: 134px; }
+  #valBirth { left: 186px; top: 131px; width: 180px; font-size: 14px; }
+
+  /* 証明文 */
+  .certify {
+    position: absolute;
+    left: 126px;
+    top: 158px;
+    width: 240px;
+    height: 14px;
+    line-height: 14px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: #4a3438;
+    letter-spacing: 0.02em;
   }
 
-  .field#field-name .value {
-    font-size: 17px;
-    letter-spacing: 0.08em;
-  }
-
-  .field#field-birth .value {
-    font-size: 13.5px;
-  }
-
-  /* ---------- フッター（バーコード + 学校長印） ---------- */
-  .card-footer {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 8px;
-  }
-
-  .barcode-wrap {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
+  /* バーコード */
   .barcode {
-    display: flex;
-    align-items: flex-end;
-    gap: 1px;
+    position: absolute;
+    left: 14px;
+    top: 182px;
+    width: 224px;
     height: 26px;
+    display: flex;
+    align-items: stretch;
+    gap: 1px;
     padding: 2px 3px;
     background: #ffffff;
-    border: 1px solid rgba(120, 156, 200, 0.5);
-    border-radius: 2px;
+    border: 1px solid #d8c4c8;
     overflow: hidden;
   }
 
   .barcode span {
     display: block;
     height: 100%;
-    background: #16233a;
+    background: #241a1c;
     flex: 0 0 auto;
   }
 
   .barcode-caption {
-    margin-top: 3px;
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    position: absolute;
+    left: 14px;
+    top: 210px;
+    width: 224px;
+    height: 12px;
+    line-height: 12px;
+    font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-size: 8px;
-    letter-spacing: 0.22em;
-    color: #4a5f7d;
+    letter-spacing: 0.2em;
+    color: #6d4a50;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
   }
 
-  .principal {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding-bottom: 2px;
-  }
-
-  .principal .txt {
-    font-size: 8.5px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #2b3d5c;
-    white-space: nowrap;
-  }
-
-  .principal .stamp {
-    width: 30px;
-    height: 30px;
-    flex: 0 0 auto;
-    border: 1.6px solid #c0392b;
+  /* 学校長印 */
+  .stamp {
+    position: absolute;
+    left: 316px;
+    top: 178px;
+    width: 36px;
+    height: 36px;
+    border: 1.8px solid #c0392b;
     border-radius: 50%;
     color: #c0392b;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 800;
     line-height: 1.0;
-    letter-spacing: 0;
     text-align: center;
     transform: rotate(-8deg);
-    opacity: 0.85;
+    opacity: 0.86;
+  }
+
+  .stamp-label {
+    position: absolute;
+    left: 224px;
+    top: 184px;
+    width: 88px;
+    height: 26px;
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 13px;
+    color: #4a3438;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* ===================================================================
+     裏面
+     =================================================================== */
+  .card-back {
+    background: linear-gradient(160deg, #8b2735 0%, #7c2230 52%, #661a26 100%);
+    border: 1px solid #6f1d29;
+    transform: rotateY(180deg);
+  }
+
+  #crestBack {
+    position: absolute;
+    left: 109px;
+    top: 26px;
+    width: 160px;
+    height: 160px;
+  }
+
+  .back-school {
+    position: absolute;
+    left: 0;
+    top: 190px;
+    width: 378px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+  }
+
+  /* ===================================================================
+     操作パネル
+     =================================================================== */
+  .side-tabs {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 14px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .side-tab {
+    flex: 1 1 0;
+    height: 34px;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.08em;
+    color: #7c2230;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(124, 34, 48, 0.4);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .side-tab.active {
+    color: #ffffff;
+    background: linear-gradient(180deg, #8b2735 0%, #7c2230 100%);
+    border-color: #6f1d29;
+  }
+
+  .file-input {
+    position: fixed;
+    left: 0; bottom: 0;
+    width: 1px; height: 1px;
+    padding: 0; margin: 0; border: 0;
+    opacity: 0;
+    z-index: -1;
+  }
+
+  .tool-row {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    padding: 0 14px;
+    font-size: 12.5px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: #ffffff;
+  }
+
+  .btn:active { transform: translateY(1px); filter: brightness(0.95); }
+  .btn:disabled { opacity: 0.6; cursor: default; }
+
+  .btn-photo {
+    background: linear-gradient(180deg, #8b2735 0%, #7c2230 100%);
+    border-color: #6f1d29;
+    box-shadow: 0 3px 8px rgba(124, 34, 48, 0.28);
+  }
+
+  .btn-export {
+    flex: 1 1 0;
+    background: linear-gradient(180deg, #4a3b3e 0%, #2f2528 100%);
+    border-color: #241c1e;
+    box-shadow: 0 3px 8px rgba(47, 37, 40, 0.26);
+  }
+
+  .status {
+    flex: 1 1 140px;
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #6b565a;
+    word-break: break-all;
+  }
+
+  .status.ok { color: #1f7a4d; font-weight: 700; }
+  .status.ng { color: #b8342c; font-weight: 700; }
+
+  .export-preview {
+    width: 100%;
+    max-width: 380px;
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(124, 34, 48, 0.3);
+    display: none;
+  }
+
+  .export-preview.shown { display: block; }
+
+  .export-preview img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(60, 26, 32, 0.2);
+  }
+
+  .export-preview p {
+    margin: 8px 0 0;
+    font-size: 11px;
+    line-height: 1.7;
+    color: #5a464a;
   }
 
   /* ===================================================================
@@ -442,10 +547,10 @@
     margin-top: 18px;
     border-radius: 12px;
     padding: 14px 14px 16px;
-    background: linear-gradient(160deg, #0e1a2c 0%, #16283f 55%, #0d1826 100%);
-    border: 1px solid rgba(96, 158, 219, 0.4);
-    box-shadow: 0 10px 26px rgba(12, 24, 40, 0.32);
-    color: #d9e8fa;
+    background: linear-gradient(160deg, #1a1214 0%, #2a1c20 55%, #150e10 100%);
+    border: 1px solid rgba(214, 150, 160, 0.35);
+    box-shadow: 0 10px 26px rgba(40, 20, 24, 0.32);
+    color: #f0e2e4;
     position: relative;
     overflow: hidden;
   }
@@ -456,11 +561,10 @@
     inset: 0;
     background: repeating-linear-gradient(
       0deg,
-      rgba(120, 190, 255, 0.05) 0px,
-      rgba(120, 190, 255, 0.05) 1px,
+      rgba(255, 210, 220, 0.045) 0px,
+      rgba(255, 210, 220, 0.045) 1px,
       rgba(0, 0, 0, 0) 2px,
-      rgba(0, 0, 0, 0) 4px
-    );
+      rgba(0, 0, 0, 0) 4px);
     pointer-events: none;
   }
 
@@ -469,7 +573,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
     margin-bottom: 6px;
   }
 
@@ -477,13 +580,13 @@
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 0.3em;
-    color: #63b0f0;
+    color: #e2899a;
   }
 
   .pp-sub {
     font-size: 9px;
     letter-spacing: 0.14em;
-    color: #6f8bab;
+    color: #a6858b;
   }
 
   .pp-value-row {
@@ -494,24 +597,19 @@
     gap: 6px;
     padding: 6px 10px 8px;
     border-radius: 8px;
-    background: rgba(4, 12, 22, 0.55);
-    border: 1px solid rgba(96, 158, 219, 0.22);
+    background: rgba(10, 5, 7, 0.55);
+    border: 1px solid rgba(214, 150, 160, 0.2);
     margin-bottom: 12px;
   }
 
   #ppValue {
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-size: 32px;
     font-weight: 700;
-    letter-spacing: 0.02em;
-    color: #eaf5ff;
-    text-shadow: 0 0 12px rgba(99, 176, 240, 0.55);
+    color: #fdf3f5;
+    text-shadow: 0 0 12px rgba(226, 137, 154, 0.5);
     transition: color 0.2s ease, text-shadow 0.2s ease;
     line-height: 1.1;
-  }
-
-  #ppValue.counting {
-    color: #ffffff;
   }
 
   #ppValue.up {
@@ -527,13 +625,11 @@
   .pp-unit {
     font-size: 15px;
     font-weight: 700;
-    color: #7fb6e6;
+    color: #d79ba6;
     letter-spacing: 0.06em;
   }
 
-  .pp-value-row.shake {
-    animation: shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-  }
+  .pp-value-row.shake { animation: shake 0.34s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
 
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -549,7 +645,6 @@
     position: relative;
     display: flex;
     gap: 8px;
-    align-items: stretch;
   }
 
   #ppInput {
@@ -557,30 +652,27 @@
     min-width: 0;
     height: 42px;
     padding: 0 12px;
-    font-size: 16px; /* iOSの自動ズーム防止 */
-    font-family: "SFMono-Regular", "Menlo", "Consolas", "Courier New", monospace;
+    font-size: 16px;   /* iOS の自動ズーム防止 */
+    font-family: "SFMono-Regular", Menlo, Consolas, "Courier New", monospace;
     font-weight: 700;
     text-align: right;
-    color: #eaf5ff;
-    background: rgba(4, 12, 22, 0.7);
-    border: 1px solid rgba(96, 158, 219, 0.35);
+    color: #fdf3f5;
+    background: rgba(10, 5, 7, 0.7);
+    border: 1px solid rgba(214, 150, 160, 0.32);
     border-radius: 8px;
     outline: none;
     -moz-appearance: textfield;
   }
 
   #ppInput::-webkit-outer-spin-button,
-  #ppInput::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
+  #ppInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
   #ppInput:focus {
-    border-color: #63b0f0;
-    box-shadow: 0 0 0 3px rgba(99, 176, 240, 0.2);
+    border-color: #e2899a;
+    box-shadow: 0 0 0 3px rgba(226, 137, 154, 0.18);
   }
 
-  #ppInput::placeholder { color: #5c7a9c; font-weight: 400; }
+  #ppInput::placeholder { color: #8d7176; font-weight: 400; }
 
   .pp-btn {
     flex: 0 0 auto;
@@ -593,22 +685,20 @@
     border-radius: 8px;
     border: 1px solid transparent;
     cursor: pointer;
-    color: #061420;
-    transition: transform 0.08s ease, filter 0.15s ease, box-shadow 0.15s ease;
     font-family: inherit;
+    color: #1b0c0f;
   }
 
   .pp-btn:active { transform: translateY(1px) scale(0.98); }
 
   .pp-btn.add {
     background: linear-gradient(180deg, #6fe6a2 0%, #34c07a 100%);
-    box-shadow: 0 3px 10px rgba(52, 192, 122, 0.35);
+    box-shadow: 0 3px 10px rgba(52, 192, 122, 0.3);
   }
 
   .pp-btn.sub {
     background: linear-gradient(180deg, #ff9e9e 0%, #e8595b 100%);
-    color: #2a0a0c;
-    box-shadow: 0 3px 10px rgba(232, 89, 91, 0.32);
+    box-shadow: 0 3px 10px rgba(232, 89, 91, 0.3);
   }
 
   .pp-presets {
@@ -623,26 +713,21 @@
     padding: 5px 10px;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #9fc8ec;
-    background: rgba(99, 176, 240, 0.08);
-    border: 1px solid rgba(99, 176, 240, 0.3);
+    color: #dda9b3;
+    background: rgba(226, 137, 154, 0.08);
+    border: 1px solid rgba(226, 137, 154, 0.3);
     border-radius: 999px;
     cursor: pointer;
     font-family: inherit;
-    transition: background 0.15s ease, color 0.15s ease;
   }
 
-  .preset:active {
-    background: rgba(99, 176, 240, 0.28);
-    color: #eaf5ff;
-  }
+  .preset:active { background: rgba(226, 137, 154, 0.26); color: #fff; }
 
   .preset.reset {
     margin-left: auto;
-    color: #93a8c0;
-    border-color: rgba(147, 168, 192, 0.3);
-    background: rgba(147, 168, 192, 0.08);
+    color: #b09a9e;
+    border-color: rgba(176, 154, 158, 0.3);
+    background: rgba(176, 154, 158, 0.08);
   }
 
   .pp-log {
@@ -650,177 +735,33 @@
     margin-top: 10px;
     min-height: 15px;
     font-size: 11px;
-    letter-spacing: 0.04em;
-    color: #7f9cba;
-    transition: opacity 0.2s ease;
+    color: #b1959a;
   }
 
   .pp-log.ok { color: #7ef0a8; }
   .pp-log.ng { color: #ff9d9d; }
 
-  .hint {
-    max-width: 380px;
+  /* ===================================================================
+     案内・フッター
+     =================================================================== */
+  .hint, .install-note {
     width: 100%;
-    margin-top: 16px;
+    max-width: 380px;
     font-size: 11px;
     line-height: 1.9;
-    color: #56687f;
+    color: #5f4c50;
   }
 
-  .hint b { color: #2f4a6d; }
-
-  /* ファイル入力は display:none にしない。
-     一部のモバイルブラウザ／WebView では display:none / clip された input の
-     ピッカーが開かないため、「見えないが確実にレイアウトされている」状態にする */
-  .file-input {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: 0;
-    border: 0;
-    opacity: 0;
-    z-index: -1;
-  }
-
-  /* カード外の予備の写真選択ボタン（label なので JS なしでも開く） */
-  .photo-tools {
-    width: 100%;
-    max-width: 380px;
-    margin-top: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .pick-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 16px;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: #ffffff;
-    background: linear-gradient(180deg, #4a90d9 0%, #2f6fb8 100%);
-    border: 1px solid rgba(31, 95, 168, 0.7);
-    border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(47, 111, 184, 0.28);
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  .pick-btn:active { transform: translateY(1px); filter: brightness(0.95); }
-
-  .photo-status {
-    flex: 1 1 140px;
-    min-width: 0;
-    font-size: 11px;
-    line-height: 1.6;
-    color: #56687f;
-    word-break: break-all;
-  }
-
-  .photo-status.ok { color: #1f7a4d; font-weight: 700; }
-  .photo-status.ng { color: #b8342c; font-weight: 700; }
-
-  /* ---------- 画像として保存 ---------- */
-  .export-row {
-    width: 100%;
-    max-width: 380px;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .export-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 16px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: inherit;
-    letter-spacing: 0.06em;
-    color: #ffffff;
-    background: linear-gradient(180deg, #3d4f6b 0%, #23334c 100%);
-    border: 1px solid rgba(20, 41, 74, 0.7);
-    border-radius: 8px;
-    box-shadow: 0 3px 8px rgba(35, 51, 76, 0.28);
-    cursor: pointer;
-  }
-
-  .export-btn:active { transform: translateY(1px); filter: brightness(0.95); }
-  .export-btn:disabled { opacity: 0.6; cursor: default; }
-
-  .export-status {
-    flex: 1 1 140px;
-    min-width: 0;
-    font-size: 11px;
-    line-height: 1.6;
-    color: #56687f;
-    word-break: break-all;
-  }
-
-  .export-status.ok { color: #1f7a4d; font-weight: 700; }
-  .export-status.ng { color: #b8342c; font-weight: 700; }
-
-  .export-preview {
-    width: 100%;
-    max-width: 380px;
-    margin-top: 12px;
-    padding: 10px;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(120, 156, 200, 0.45);
-    display: none;
-  }
-
-  .export-preview.shown { display: block; }
-
-  .export-preview img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(23, 48, 84, 0.18);
-  }
-
-  .export-preview p {
-    margin: 8px 0 0;
-    font-size: 11px;
-    line-height: 1.7;
-    color: #46586f;
-  }
-
-  /* ホーム画面から起動（standalone）したときはノッチ／ホームバーを避ける */
-  @media all and (display-mode: standalone) {
-    body {
-      padding-top: calc(24px + env(safe-area-inset-top));
-      padding-bottom: calc(48px + env(safe-area-inset-bottom));
-    }
-    .install-note { display: none !important; }
-  }
+  .hint { margin-top: 16px; }
+  .hint b { color: #7c2230; }
 
   .install-note {
-    width: 100%;
-    max-width: 380px;
     margin-top: 14px;
     padding: 11px 13px;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(120, 156, 200, 0.45);
-    font-size: 11px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(124, 34, 48, 0.3);
     line-height: 1.85;
-    color: #46586f;
   }
 
   .install-note b {
@@ -828,15 +769,15 @@
     margin-bottom: 3px;
     font-size: 11.5px;
     letter-spacing: 0.08em;
-    color: #1f5fa8;
+    color: #7c2230;
   }
 
   .install-note code {
     font-family: inherit;
     padding: 0 4px;
     border-radius: 3px;
-    background: rgba(47, 111, 184, 0.1);
-    color: #1f5fa8;
+    background: rgba(124, 34, 48, 0.1);
+    color: #7c2230;
     font-weight: 700;
   }
 
@@ -850,11 +791,7 @@
     gap: 10px;
   }
 
-  .save-state {
-    font-size: 10.5px;
-    letter-spacing: 0.04em;
-    color: #6b7d94;
-  }
+  .save-state { font-size: 10.5px; color: #7a656a; }
 
   .link-btn {
     flex: 0 0 auto;
@@ -862,36 +799,39 @@
     font-size: 11px;
     font-weight: 700;
     font-family: inherit;
-    color: #6b7d94;
+    color: #7a656a;
     background: rgba(255, 255, 255, 0.6);
-    border: 1px solid rgba(120, 156, 200, 0.5);
+    border: 1px solid rgba(124, 34, 48, 0.3);
     border-radius: 999px;
     cursor: pointer;
   }
 
-  .link-btn:active { background: rgba(120, 156, 200, 0.2); }
+  /* ホーム画面から起動（standalone）したときはノッチ／ホームバーを避ける */
+  @media all and (display-mode: standalone) {
+    body {
+      padding-top: calc(22px + env(safe-area-inset-top));
+      padding-bottom: calc(48px + env(safe-area-inset-bottom));
+    }
+    .install-note { display: none !important; }
+  }
 </style>
 </head>
 <body>
 
   <h1 class="page-title">STUDENT IDENTIFICATION CARD</h1>
 
-  <!-- ============================ 学生証カード ============================ -->
+  <!-- ============================ 学生証 ============================ -->
   <div class="card-stage">
     <div class="card-scaler" id="cardScaler">
-      <div class="id-card" id="idCard">
+      <div class="card-flip" id="cardFlip">
 
-        <!-- ヘッダー -->
-        <div class="card-header">
-          <div class="school-name">高度育成高等学校</div>
-          <div class="header-en">STUDENT ID</div>
-        </div>
-        <div class="header-line"></div>
+        <!-- ---------------------- 表面 ---------------------- -->
+        <div class="card-face card-front" id="cardFront">
+          <div class="front-header"></div>
+          <div class="front-header-title">学生証</div>
+          <canvas id="crestWatermark" width="352" height="352"></canvas>
 
-        <!-- メイン -->
-        <div class="card-main">
-
-          <!-- 左：写真エリア（label なので JS が動かない環境でもピッカーが開く） -->
+          <!-- 写真（label なので JS なしでもファイル選択が開く） -->
           <label class="photo-area" id="photoArea" for="photoInput">
             <div class="photo-placeholder">
               <span class="icon"></span>
@@ -901,61 +841,72 @@
                     aria-label="写真を削除">×</button>
           </label>
 
-          <!-- 右：情報エリア -->
-          <div class="info-area">
-            <div class="field" id="field-id">
-              <div class="label">学籍番号 / STUDENT No.</div>
-              <div class="value" id="studentId"
-                   contenteditable="true" spellcheck="false"
-                   inputmode="text" data-default="S01T004651">S01T004651</div>
-            </div>
+          <!-- 氏名 -->
+          <div class="f-label" id="labName">氏名</div>
+          <div class="f-value" id="valName" contenteditable="true" spellcheck="false"
+               data-default="綾小路 清隆">綾小路 清隆</div>
+          <div class="f-value" id="valRoman" contenteditable="true" spellcheck="false"
+               data-default="Ayanokouji Kiyotaka">Ayanokouji Kiyotaka</div>
 
-            <div class="field" id="field-name">
-              <div class="label">氏名 / NAME</div>
-              <div class="value" id="studentName"
-                   contenteditable="true" spellcheck="false"
-                   data-default="綾小路 清隆">綾小路 清隆</div>
-            </div>
+          <div class="f-rule" id="rule1"></div>
 
-            <div class="field" id="field-birth">
-              <div class="label">生年月日 / DATE OF BIRTH</div>
-              <div class="value" id="studentBirth"
-                   contenteditable="true" spellcheck="false"
-                   data-default="2010年10月20日">2010年10月20日</div>
-            </div>
-          </div>
+          <!-- 学籍番号・クラス・生年月日 -->
+          <div class="f-label" id="labId">学籍番号</div>
+          <div class="f-value" id="valId" contenteditable="true" spellcheck="false"
+               data-default="S01T004651">S01T004651</div>
+
+          <div class="f-label" id="labClass">クラス</div>
+          <div class="f-value" id="valClass" contenteditable="true" spellcheck="false"
+               data-default="1-D">1-D</div>
+
+          <div class="f-label" id="labBirth">生年月日</div>
+          <div class="f-value" id="valBirth" contenteditable="true" spellcheck="false"
+               data-default="2010年10月20日">2010年10月20日</div>
+
+          <div class="f-rule" id="rule2"></div>
+          <div class="certify">上記の者は当校の生徒であることを証明する。</div>
+
+          <!-- バーコード -->
+          <div class="barcode" id="barcode" aria-hidden="true"></div>
+          <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
+
+          <!-- 学校長印 -->
+          <div class="stamp-label">高度育成高等学校<br>学校長　印</div>
+          <div class="stamp" id="stampEl">坂<br>柳</div>
         </div>
 
-        <!-- フッター -->
-        <div class="card-footer">
-          <div class="barcode-wrap">
-            <div class="barcode" id="barcode" aria-hidden="true"></div>
-            <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
-          </div>
-          <div class="principal">
-            <div class="txt">高度育成高等学校<br>学校長　印</div>
-            <div class="stamp" id="stampEl">坂<br>柳</div>
-          </div>
+        <!-- ---------------------- 裏面 ---------------------- -->
+        <div class="card-face card-back" id="cardBack">
+          <canvas id="crestBack" width="480" height="480"></canvas>
+          <div class="back-school">東京都高度育成高等学校</div>
         </div>
 
       </div>
     </div>
   </div>
 
-  <!-- ファイル入力本体。transform や overflow:hidden の影響を受けないよう
-       カードの外（body 直下）に置く -->
-  <input type="file" id="photoInput" accept="image/*" class="file-input">
-
-  <!-- カードの写真枠が反応しない環境向けの予備ボタン + 状態表示 -->
-  <div class="photo-tools">
-    <label class="pick-btn" for="photoInput">写真を選択</label>
-    <span class="photo-status" id="photoStatus">写真は未設定です。</span>
+  <!-- 表裏の切り替え -->
+  <div class="side-tabs">
+    <button type="button" class="side-tab active" id="tabFront">表面</button>
+    <button type="button" class="side-tab" id="tabBack">裏面</button>
   </div>
 
-  <!-- 学生証を画像（PNG）として書き出す -->
-  <div class="export-row">
-    <button type="button" class="export-btn" id="btnExport">画像として保存</button>
-    <span class="export-status" id="exportStatus">カード部分を PNG（1140×720）で書き出します。</span>
+  <!-- ファイル入力本体（transform や overflow の影響を受けないカード外に置く） -->
+  <input type="file" id="photoInput" accept="image/*" class="file-input">
+
+  <div class="tool-row">
+    <label class="btn btn-photo" for="photoInput">写真を選択</label>
+    <span class="status" id="photoStatus">写真は未設定です。</span>
+  </div>
+
+  <!-- 表裏を別々の PNG で書き出す（シール印刷用） -->
+  <div class="tool-row">
+    <button type="button" class="btn btn-export" id="btnExportFront">表面を保存</button>
+    <button type="button" class="btn btn-export" id="btnExportBack">裏面を保存</button>
+  </div>
+
+  <div class="tool-row">
+    <span class="status" id="exportStatus">PNG 1520×960（印刷用・約450dpi）で書き出します。</span>
   </div>
 
   <div class="export-preview" id="exportPreview">
@@ -994,15 +945,16 @@
   </div>
 
   <p class="hint">
-    <b>使い方</b>：写真枠、または「写真を選択」ボタンをタップすると端末の写真を選べます（どちらでも同じです）。
-    学籍番号・氏名・生年月日は直接タップして書き換えられます。ポイントは数値を入力して「追加」「消費」を押してください。
-    入力した内容と写真はこの端末に自動保存され、次に開いたときも復元されます。
+    <b>使い方</b>：写真枠、または「写真を選択」ボタンで端末の写真を挿入できます。
+    氏名・ローマ字・学籍番号・クラス・生年月日はタップして直接書き換えられます。
+    「表面」「裏面」で面を切り替え、それぞれ別の PNG として保存できます。
+    入力内容と写真はこの端末に自動保存されます。
   </p>
 
   <div class="install-note" id="installNote">
     <b>アプリとしてホーム画面に置く</b>
     iPhone（Safari）：共有ボタン <code>&#x2191;</code> →「ホーム画面に追加」<br>
-    Android（Chrome）：メニュー <code>&#8942;</code> →「アプリをインストール」または「ホーム画面に追加」<br>
+    Android（Chrome）：メニュー <code>&#8942;</code> →「アプリをインストール」<br>
     追加後はアドレスバーのない全画面で起動します。
   </div>
 
@@ -1015,40 +967,39 @@
 (function () {
   "use strict";
 
+  var CARD_W = 380;
+  var CARD_H = 240;
+
+  var FONT_FAMILY = '"Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic, ' +
+                    'Meiryo, "Noto Sans JP", sans-serif';
+  var MONO_FAMILY = '"SFMono-Regular", Menlo, Consolas, "Courier New", monospace';
+
+  var cardFront = document.getElementById("cardFront");
+  var cardBack  = document.getElementById("cardBack");
+
   /* =================================================================
-     1. 写真挿入機能
+     1. 写真挿入
      ================================================================= */
   var photoArea   = document.getElementById("photoArea");
   var photoInput  = document.getElementById("photoInput");
   var photoClear  = document.getElementById("photoClear");
   var photoStatus = document.getElementById("photoStatus");
-  var photoImg    = null;         // 挿入済み <img>
-  var photoUrl    = null;         // 現在の ObjectURL（DataURL のときは null）
+  var photoImg    = null;    // 表示中の <img>
+  var photoUrl    = null;    // ObjectURL（DataURL のときは null）
 
   function setStatus(msg, type) {
     photoStatus.textContent = msg;
-    photoStatus.className = "photo-status" + (type ? " " + type : "");
+    photoStatus.className = "status" + (type ? " " + type : "");
   }
 
-  /* 写真枠と「写真を選択」ボタンは <label for="photoInput"> なので、
-     JavaScript を介さずブラウザ標準の動作でピッカーが開く。
-     キーボード操作と、label が効かない環境向けの保険だけ JS で補う。 */
+  // 写真枠と「写真を選択」は <label for> なので JS を通さず標準動作で開く
   photoArea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      openPicker();
+      try { photoInput.click(); } catch (err) { /* 無視 */ }
     }
   });
 
-  function openPicker() {
-    try {
-      photoInput.click();
-    } catch (err) {
-      setStatus("写真選択を開けませんでした：" + err.message, "ng");
-    }
-  }
-
-  // ピッカーが開いたかどうかを画面上で確認できるようにする
   photoInput.addEventListener("click", function () {
     setStatus("写真選択を開いています…", "");
   });
@@ -1060,7 +1011,7 @@
       return;
     }
 
-    // HEIC など type が空で返る端末があるため、拡張子でも判定する
+    // HEIC など type が空で返る端末があるため拡張子でも判定する
     var looksLikeImage =
       /^image\//i.test(file.type || "") ||
       /\.(jpe?g|png|gif|webp|bmp|heic|heif|avif)$/i.test(file.name || "");
@@ -1071,26 +1022,16 @@
       return;
     }
 
-    setStatus(
-      "読み込み中… " + (file.name || "image") +
-      "（" + Math.max(1, Math.round(file.size / 1024)) + " KB）",
-      ""
-    );
+    setStatus("読み込み中… " + (file.name || "image") +
+              "（" + Math.max(1, Math.round(file.size / 1024)) + " KB）", "");
     loadFile(file);
-
-    // 同じファイルを再選択しても change が発火するようにリセット
-    photoInput.value = "";
+    photoInput.value = "";   // 同じ写真を選び直しても change が発火するように
   });
 
-  /* 1) ObjectURL で表示 → 2) 失敗したら FileReader(DataURL) で再挑戦
-     という二段構えにして、どちらかが使えない環境でも表示できるようにする */
+  // ObjectURL → 失敗したら FileReader という二段構え
   function loadFile(file) {
     var url = null;
-    try {
-      url = URL.createObjectURL(file);
-    } catch (err) {
-      url = null;
-    }
+    try { url = URL.createObjectURL(file); } catch (err) { url = null; }
 
     if (url) {
       applyPhoto(url, true, file, function () {
@@ -1119,21 +1060,12 @@
     reader.readAsDataURL(file);
   }
 
-  /**
-   * 画像をカードに反映する
-   * @param {string}   src      画像の URL / DataURL
-   * @param {boolean}  isObject ObjectURL かどうか（解放が必要か）
-   * @param {File}     file     選択されたファイル（表示用）
-   * @param {Function} onFail   表示に失敗したときのフォールバック
-   */
   function applyPhoto(src, isObject, file, onFail, quiet) {
     var img = document.createElement("img");
     img.alt = "顔写真";
 
     img.onload = function () {
-      if (photoImg && photoImg.parentNode) {
-        photoImg.parentNode.removeChild(photoImg);
-      }
+      if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
       if (photoUrl) { URL.revokeObjectURL(photoUrl); }
 
       photoImg = img;
@@ -1142,45 +1074,32 @@
       photoArea.classList.add("has-image");
 
       if (quiet) {
-        // 保存データからの復元時
         setStatus("保存された写真を復元しました。", "");
       } else {
-        setStatus(
-          "写真を挿入しました：" + (file && file.name ? file.name : "image") +
-          "（" + img.naturalWidth + "×" + img.naturalHeight + "）",
-          "ok"
-        );
-        // 端末に保存（保存用に縮小したものを使う）
+        setStatus("写真を挿入しました：" + (file && file.name ? file.name : "image") +
+                  "（" + img.naturalWidth + "×" + img.naturalHeight + "）", "ok");
         savePhotoFromImage(img);
       }
     };
 
-    img.onerror = function () {
-      if (typeof onFail === "function") { onFail(); }
-    };
-
+    img.onerror = function () { if (typeof onFail === "function") { onFail(); } };
     img.src = src;
   }
 
-  // ×ボタン：label の中にあるのでピッカーが開かないよう既定動作を止める
+  // ×ボタンは label の中にあるので既定動作（ファイル選択）を止める
   photoClear.addEventListener("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
-    if (photoImg && photoImg.parentNode) {
-      photoImg.parentNode.removeChild(photoImg);
-    }
+    if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
     photoImg = null;
-    if (photoUrl) {
-      URL.revokeObjectURL(photoUrl);
-      photoUrl = null;
-    }
+    if (photoUrl) { URL.revokeObjectURL(photoUrl); photoUrl = null; }
     photoArea.classList.remove("has-image");
     setStatus("写真を削除しました。", "");
     photoData = null;
     scheduleSave();
   });
 
-  // PC 向け：写真枠へのドラッグ＆ドロップにも対応
+  // PC 向け：ドラッグ＆ドロップ
   ["dragenter", "dragover"].forEach(function (type) {
     photoArea.addEventListener(type, function (e) {
       e.preventDefault();
@@ -1195,52 +1114,40 @@
   });
 
   /* =================================================================
-     2. テキストの直接編集（contenteditable の制御）
+     2. 文字の直接編集
      ================================================================= */
-  var editables = [
-    document.getElementById("studentId"),
-    document.getElementById("studentName"),
-    document.getElementById("studentBirth")
-  ];
+  var editables = ["valName", "valRoman", "valId", "valClass", "valBirth"]
+    .map(function (id) { return document.getElementById(id); });
 
   editables.forEach(function (el) {
-    // 改行を禁止（1行の項目なので Enter で確定＝フォーカスを外す）
     el.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        el.blur();
-      }
+      if (e.key === "Enter") { e.preventDefault(); el.blur(); }
     });
 
-    // 貼り付けはプレーンテキストのみ許可（書式の混入を防ぐ）
+    // 貼り付けはプレーンテキストのみ（書式の混入を防ぐ）
     el.addEventListener("paste", function (e) {
       e.preventDefault();
       var text = (e.clipboardData || window.clipboardData).getData("text");
-      text = String(text).replace(/[\r\n]+/g, " ");
-      document.execCommand("insertText", false, text);
+      document.execCommand("insertText", false, String(text).replace(/[\r\n]+/g, " "));
     });
 
-    // 入力のたびに保存（連打に備えて遅延書き込み）
     el.addEventListener("input", scheduleSave);
 
-    // 空欄になったら初期値へ戻す
     el.addEventListener("blur", function () {
-      if (el.textContent.trim() === "") {
-        el.textContent = el.getAttribute("data-default");
-      }
+      if (el.textContent.trim() === "") { el.textContent = el.getAttribute("data-default"); }
       el.scrollLeft = 0;
       scheduleSave();
     });
   });
 
   /* =================================================================
-     3. ダミーバーコード生成（学籍番号に連動）
+     3. ダミーバーコード（学籍番号に連動）
      ================================================================= */
   var barcodeEl      = document.getElementById("barcode");
   var barcodeCaption = document.getElementById("barcodeCaption");
-  var studentIdEl    = document.getElementById("studentId");
+  var valId          = document.getElementById("valId");
+  var barcodeBars    = [];
 
-  // 文字列から決定的な擬似乱数シードを作る
   function hashString(str) {
     var h = 2166136261;
     for (var i = 0; i < str.length; i++) {
@@ -1252,8 +1159,7 @@
 
   function makeRandom(seed) {
     var s = seed || 1;
-    return function () {
-      // xorshift32
+    return function () {           // xorshift32
       s ^= s << 13; s >>>= 0;
       s ^= s >> 17;
       s ^= s << 5;  s >>>= 0;
@@ -1261,25 +1167,20 @@
     };
   }
 
-  // 画面表示と画像書き出しで同じ縞模様を使うため、パターンを配列で持つ
-  var barcodeBars = [];
-
+  // 画面と書き出し画像で同じ縞になるよう、パターンを配列で持つ
   function buildBarcodePattern(text) {
     var rnd = makeRandom(hashString(text || "0"));
-    var bars = [];
-    bars.push({ w: 2, ink: true });               // 開始ガード
-    bars.push({ w: 1, ink: false });
-    for (var i = 0; i < 52; i++) {
-      bars.push({ w: 1 + Math.floor(rnd() * 3), ink: true });   // 1〜3px の黒バー
-      bars.push({ w: 1 + Math.floor(rnd() * 2), ink: false });  // 1〜2px の隙間
+    var bars = [{ w: 2, ink: true }, { w: 1, ink: false }];
+    for (var i = 0; i < 48; i++) {
+      bars.push({ w: 1 + Math.floor(rnd() * 3), ink: true });
+      bars.push({ w: 1 + Math.floor(rnd() * 2), ink: false });
     }
-    bars.push({ w: 2, ink: true });               // 終了ガード
+    bars.push({ w: 2, ink: true });
     return bars;
   }
 
   function renderBarcode(text) {
     barcodeBars = buildBarcodePattern(text);
-
     var html = "";
     for (var i = 0; i < barcodeBars.length; i++) {
       var b = barcodeBars[i];
@@ -1287,19 +1188,157 @@
               (b.ink ? "" : ";background:transparent") + '"></span>';
     }
     barcodeEl.innerHTML = html;
-
-    var caption = String(text).toUpperCase().replace(/\s+/g, "");
-    barcodeCaption.textContent = caption + " *" + ("0000" + (hashString(text) % 10000)).slice(-4) + "*";
+    barcodeCaption.textContent =
+      String(text).toUpperCase().replace(/\s+/g, "") +
+      " *" + ("0000" + (hashString(text) % 10000)).slice(-4) + "*";
   }
 
-  renderBarcode(studentIdEl.textContent.trim());
-
-  studentIdEl.addEventListener("input", function () {
-    renderBarcode(studentIdEl.textContent.trim());
+  renderBarcode(valId.textContent.trim());
+  valId.addEventListener("input", function () {
+    renderBarcode(valId.textContent.trim());
   });
 
   /* =================================================================
-     4. PRIVATE POINT（カウンターアニメーション付き）
+     4. 校章（表面の透かし・裏面・書き出しで同じ描画関数を使う）
+     ================================================================= */
+  function drawCrest(ctx, cx, cy, s, color, lineScale, ribbonFill) {
+    var lw = (lineScale || 1);
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+
+    // --- 盾 ---
+    function shieldPath(inset) {
+      var w = s / 2 - inset;
+      var top = cy - s * 0.58 + inset;
+      var shoulder = cy + s * 0.10;
+      var tip = cy + s * 0.66 - inset;
+      ctx.beginPath();
+      ctx.moveTo(cx - w, top);
+      ctx.lineTo(cx + w, top);
+      ctx.lineTo(cx + w, shoulder);
+      ctx.quadraticCurveTo(cx + w, tip - s * 0.10, cx, tip);
+      ctx.quadraticCurveTo(cx - w, tip - s * 0.10, cx - w, shoulder);
+      ctx.closePath();
+    }
+
+    ctx.lineWidth = 2.4 * lw;
+    shieldPath(0);
+    ctx.stroke();
+
+    ctx.lineWidth = 1.0 * lw;
+    shieldPath(s * 0.045);
+    ctx.stroke();
+
+    // --- 月桂樹（左右対称の枝と葉） ---
+    function laurel(dir) {
+      ctx.save();
+      ctx.translate(cx, cy + s * 0.06);
+      ctx.scale(dir, 1);
+
+      ctx.lineWidth = 1.2 * lw;
+      ctx.beginPath();
+      ctx.moveTo(s * 0.06, s * 0.30);
+      ctx.quadraticCurveTo(s * 0.34, s * 0.18, s * 0.30, -s * 0.24);
+      ctx.stroke();
+
+      for (var i = 0; i < 6; i++) {
+        var t = i / 5;
+        // 枝上の位置（二次ベジエ）
+        var p0x = s * 0.06,  p0y = s * 0.30;
+        var p1x = s * 0.34,  p1y = s * 0.18;
+        var p2x = s * 0.30,  p2y = -s * 0.24;
+        var mt = 1 - t;
+        var px = mt * mt * p0x + 2 * mt * t * p1x + t * t * p2x;
+        var py = mt * mt * p0y + 2 * mt * t * p1y + t * t * p2y;
+
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(-0.9 + t * 0.5);
+        ctx.beginPath();
+        ctx.ellipse(0, -s * 0.045, s * 0.026, s * 0.055, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    laurel(1);
+    laurel(-1);
+
+    // --- 中央の文字 ---
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "bold " + Math.round(s * 0.30) + "px " + FONT_FAMILY;
+    ctx.fillText("育", cx, cy + s * 0.13);
+
+    // --- 下部のリボン ---
+    var ry = cy + s * 0.50;
+    var rw = s * 0.60;
+    var rh = s * 0.13;
+
+    ctx.lineWidth = 1.2 * lw;
+    ctx.beginPath();
+    ctx.moveTo(cx - rw, ry - rh / 2);
+    ctx.quadraticCurveTo(cx, ry - rh, cx + rw, ry - rh / 2);
+    ctx.lineTo(cx + rw, ry + rh / 2);
+    ctx.quadraticCurveTo(cx, ry, cx - rw, ry + rh / 2);
+    ctx.closePath();
+    if (ribbonFill) {
+      // 盾の線がリボンの文字に重ならないよう、帯の内側を塗りつぶす
+      ctx.save();
+      ctx.fillStyle = ribbonFill;
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.stroke();
+    ctx.fillStyle = color;
+
+    // リボンの内側に収まるよう文字サイズを計算する
+    var banner = "TOKYO METROPOLITAN ADVANCED NURTURING HIGH SCHOOL";
+    ctx.font = "600 10px " + FONT_FAMILY;
+    var w10 = ctx.measureText(banner).width || 1;
+    var fs = Math.max(2.2, 10 * (rw * 1.62) / w10);
+    ctx.font = "600 " + fs + "px " + FONT_FAMILY;
+    ctx.fillText(banner, cx, ry + fs * 0.36);
+
+    ctx.restore();
+  }
+
+  // 画面用：表面の透かしと裏面の校章を canvas で描いておく
+  function paintCrestCanvas(canvas, cssSize, color, ribbonFill) {
+    var ratio = Math.min(3, window.devicePixelRatio || 1) * 2;
+    canvas.width  = Math.round(cssSize * ratio);
+    canvas.height = Math.round(cssSize * ratio);
+    var ctx = canvas.getContext("2d");
+    ctx.scale(ratio, ratio);
+    drawCrest(ctx, cssSize / 2, cssSize / 2, cssSize * 0.74, color, 1, ribbonFill);
+  }
+
+  paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff");
+  paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", "#7a2130");
+
+  /* =================================================================
+     5. 表裏の切り替え
+     ================================================================= */
+  var cardFlip = document.getElementById("cardFlip");
+  var tabFront = document.getElementById("tabFront");
+  var tabBack  = document.getElementById("tabBack");
+
+  function showSide(side) {
+    var back = (side === "back");
+    cardFlip.classList.toggle("flipped", back);
+    tabBack.classList.toggle("active", back);
+    tabFront.classList.toggle("active", !back);
+  }
+
+  tabFront.addEventListener("click", function () { showSide("front"); });
+  tabBack.addEventListener("click", function () { showSide("back"); });
+
+  /* =================================================================
+     6. PRIVATE POINT（カウンターアニメーション付き）
      ================================================================= */
   var INITIAL_POINT = 100000;
 
@@ -1307,80 +1346,49 @@
   var ppValueRow = document.getElementById("ppValueRow");
   var ppInput    = document.getElementById("ppInput");
   var ppLog      = document.getElementById("ppLog");
-  var btnAdd     = document.getElementById("btnAdd");
-  var btnSub     = document.getElementById("btnSub");
-  var btnReset   = document.getElementById("btnReset");
 
-  var currentPoint = INITIAL_POINT;   // 現在の確定値
-  var animId       = null;            // requestAnimationFrame の ID
+  var currentPoint = INITIAL_POINT;
+  var animId       = null;
 
-  function format(n) {
-    return Math.round(n).toLocaleString("ja-JP");
-  }
+  function format(n) { return Math.round(n).toLocaleString("ja-JP"); }
 
   function showLog(msg, type) {
     ppLog.textContent = msg;
     ppLog.className = "pp-log" + (type ? " " + type : "");
   }
 
-  // イージング（最後にゆっくり止まる）
-  function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
-  }
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
-  /**
-   * from → to へカウンターをアニメーションさせる
-   * 前半は数値をシャカシャカと揺らし、後半で目標値に収束させる
-   */
+  /* from → to へカウンターを動かす。
+     前半は数値を揺らし、後半で目標値に収束させる */
   function animatePoint(from, to) {
-    if (animId !== null) {
-      cancelAnimationFrame(animId);
-      animId = null;
-    }
+    if (animId !== null) { cancelAnimationFrame(animId); animId = null; }
 
     var diff = to - from;
-    if (diff === 0) {
-      ppValue.textContent = format(to);
-      return;
-    }
+    if (diff === 0) { ppValue.textContent = format(to); return; }
 
-    // 変化量に応じて演出時間を 400〜1100ms で調整
     var duration = Math.min(1100, Math.max(400, 380 + Math.log10(Math.abs(diff) + 1) * 190));
+    var jitter   = Math.max(1, Math.abs(diff) * 0.12);
     var start    = null;
-    var jitter   = Math.max(1, Math.abs(diff) * 0.12);   // 揺らぎの振れ幅
 
     ppValue.classList.remove("up", "down");
-    ppValue.classList.add("counting", diff > 0 ? "up" : "down");
+    ppValue.classList.add(diff > 0 ? "up" : "down");
 
     function frame(timestamp) {
       if (start === null) { start = timestamp; }
-      var elapsed  = timestamp - start;
-      var progress = Math.min(1, elapsed / duration);
+      var progress = Math.min(1, (timestamp - start) / duration);
       var eased    = easeOutCubic(progress);
+      var value    = from + diff * eased;
 
-      var value = from + diff * eased;
-
-      // 「シャカシャカ」感：進行度が進むほど揺らぎが小さくなる
       if (progress < 1) {
-        var noise = (Math.random() - 0.5) * 2 * jitter * (1 - eased);
-        value += noise;
+        value += (Math.random() - 0.5) * 2 * jitter * (1 - eased);
         if (value < 0) { value = 0; }
-      } else {
-        value = to;
-      }
-
-      ppValue.textContent = format(value);
-
-      if (progress < 1) {
+        ppValue.textContent = format(value);
         animId = requestAnimationFrame(frame);
       } else {
         animId = null;
         ppValue.textContent = format(to);
-        ppValue.classList.remove("counting");
-        // 少し余韻を残してから色を戻す
-        setTimeout(function () {
-          ppValue.classList.remove("up", "down");
-        }, 380);
+        setTimeout(function () { ppValue.classList.remove("up", "down"); }, 380);
       }
     }
 
@@ -1389,14 +1397,12 @@
 
   function shake() {
     ppValueRow.classList.remove("shake");
-    // リフローを強制してアニメーションを再生し直す
-    void ppValueRow.offsetWidth;
+    void ppValueRow.offsetWidth;      // リフローを強制して再生し直す
     ppValueRow.classList.add("shake");
   }
 
   function readAmount() {
-    var raw = ppInput.value.replace(/[^0-9.-]/g, "");
-    var n = parseFloat(raw);
+    var n = parseFloat(ppInput.value.replace(/[^0-9.-]/g, ""));
     if (!isFinite(n) || n <= 0) { return null; }
     return Math.floor(Math.abs(n));
   }
@@ -1413,10 +1419,7 @@
     var to   = currentPoint + sign * amount;
 
     if (to < 0) {
-      showLog(
-        "ポイントが不足しています（残高 " + format(currentPoint) + " P）。",
-        "ng"
-      );
+      showLog("ポイントが不足しています（残高 " + format(currentPoint) + " P）。", "ng");
       shake();
       return;
     }
@@ -1425,41 +1428,30 @@
     animatePoint(from, to);
     scheduleSave();
 
-    if (sign > 0) {
-      showLog("+ " + format(amount) + " P を追加しました。", "ok");
-    } else {
-      showLog("- " + format(amount) + " P を消費しました。", "ng");
-    }
+    showLog((sign > 0 ? "+ " : "- ") + format(amount) + " P を" +
+            (sign > 0 ? "追加" : "消費") + "しました。", sign > 0 ? "ok" : "ng");
 
     ppInput.value = "";
     ppInput.blur();
   }
 
-  btnAdd.addEventListener("click", function () { changePoint(1); });
-  btnSub.addEventListener("click", function () { changePoint(-1); });
+  document.getElementById("btnAdd").addEventListener("click", function () { changePoint(1); });
+  document.getElementById("btnSub").addEventListener("click", function () { changePoint(-1); });
 
-  // Enter キーで「追加」を実行
   ppInput.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      changePoint(1);
-    }
+    if (e.key === "Enter") { e.preventDefault(); changePoint(1); }
   });
 
-  // プリセット金額
-  Array.prototype.forEach.call(
-    document.querySelectorAll(".preset[data-amount]"),
+  Array.prototype.forEach.call(document.querySelectorAll(".preset[data-amount]"),
     function (btn) {
       btn.addEventListener("click", function () {
         ppInput.value = btn.getAttribute("data-amount");
         ppInput.focus();
         showLog(format(btn.getAttribute("data-amount")) + " P をセットしました。", "");
       });
-    }
-  );
+    });
 
-  // 残高リセット
-  btnReset.addEventListener("click", function () {
+  document.getElementById("btnReset").addEventListener("click", function () {
     var from = currentPoint;
     currentPoint = INITIAL_POINT;
     animatePoint(from, INITIAL_POINT);
@@ -1467,27 +1459,19 @@
     scheduleSave();
   });
 
-  // 初期表示
   ppValue.textContent = format(currentPoint);
 
   /* =================================================================
-     5. 画面幅に合わせてカードを縮小（スマホ対応）
+     7. 画面幅に合わせてカードを縮小
      ================================================================= */
-  var scaler    = document.getElementById("cardScaler");
-  var CARD_W    = 380;
-  var CARD_H    = 240;
-  var cardScale = 1;      // 現在の縮小率（画像書き出しの座標計算で使う）
+  var scaler = document.getElementById("cardScaler");
 
   function fitCard() {
-    var stage = scaler.parentNode;
-    var available = stage.clientWidth;
+    var available = scaler.parentNode.clientWidth;
     if (!available) { return; }
     var scale = Math.min(1, available / CARD_W);
-    cardScale = scale;
 
     scaler.style.transform = "scale(" + scale + ")";
-    scaler.style.width  = CARD_W + "px";
-    // transform ではレイアウト上のサイズが変わらないため、余白をマージンで打ち消す
     scaler.style.height = (CARD_H * scale) + "px";
     var sideMargin = (CARD_W * scale - CARD_W) / 2;   // 縮小時は負の値
     scaler.style.marginLeft  = sideMargin + "px";
@@ -1500,30 +1484,24 @@
   fitCard();
 
   /* =================================================================
-     6. 端末への自動保存（ローカルアプリとして使うための永続化）
-        - 保存先は localStorage（この端末・このブラウザの中だけ）
-        - 写真は保存用に縮小してから DataURL 化する
+     8. 端末への自動保存
      ================================================================= */
-  var STORAGE_KEY = "kodoikusei-student-id-v1";
+  var STORAGE_KEY = "kodoikusei-student-id-v2";
   var saveTimer   = null;
-  var photoData   = null;   // 保存用に縮小した写真の DataURL
+  var photoData   = null;    // 保存用に縮小した写真の DataURL
   var saveStateEl = document.getElementById("saveState");
-  var btnClear    = document.getElementById("btnClearData");
 
   var storageAvailable = (function () {
     try {
-      var k = "__storage_test__";
-      localStorage.setItem(k, "1");
-      localStorage.removeItem(k);
+      localStorage.setItem("__t__", "1");
+      localStorage.removeItem("__t__");
       return true;
     } catch (err) {
-      return false;   // プライベートブラウズや保存が禁止された環境
+      return false;      // プライベートモード等
     }
   })();
 
-  function setSaveState(msg) {
-    if (saveStateEl) { saveStateEl.textContent = msg; }
-  }
+  function setSaveState(msg) { if (saveStateEl) { saveStateEl.textContent = msg; } }
 
   function scheduleSave() {
     if (!storageAvailable) { return; }
@@ -1531,24 +1509,27 @@
     saveTimer = setTimeout(saveAll, 350);
   }
 
+  function textOf(id) { return document.getElementById(id).textContent.trim(); }
+
   function saveAll() {
     saveTimer = null;
     if (!storageAvailable) { return; }
 
     var data = {
-      sid:   document.getElementById("studentId").textContent.trim(),
-      name:  document.getElementById("studentName").textContent.trim(),
-      birth: document.getElementById("studentBirth").textContent.trim(),
-      point: currentPoint,
-      photo: photoData
+      name:   textOf("valName"),
+      roman:  textOf("valRoman"),
+      sid:    textOf("valId"),
+      cls:    textOf("valClass"),
+      birth:  textOf("valBirth"),
+      point:  currentPoint,
+      photo:  photoData
     };
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       setSaveState("保存済み（この端末に自動保存）");
     } catch (err) {
-      // 容量超過。写真を諦めて文字情報だけでも残す
-      data.photo = null;
+      data.photo = null;      // 容量超過。文字情報だけでも残す
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         setSaveState("文字情報のみ保存しました（写真は容量超過）");
@@ -1558,7 +1539,7 @@
     }
   }
 
-  /* 保存用に写真を縮小する（長辺 720px / JPEG）。
+  /* 保存用に写真を縮小（長辺 720px / JPEG）。
      端末の写真をそのまま保存すると数 MB になり保存領域を超えるため */
   function savePhotoFromImage(img) {
     if (!storageAvailable) { return; }
@@ -1571,7 +1552,7 @@
       var ch = Math.max(1, Math.round(h * scale));
 
       var canvas = document.createElement("canvas");
-      canvas.width  = cw;
+      canvas.width = cw;
       canvas.height = ch;
       var ctx = canvas.getContext("2d");
       ctx.fillStyle = "#ffffff";
@@ -1580,7 +1561,7 @@
 
       photoData = canvas.toDataURL("image/jpeg", 0.82);
     } catch (err) {
-      photoData = null;   // canvas が使えない場合は写真の保存だけ諦める
+      photoData = null;
     }
     scheduleSave();
   }
@@ -1592,29 +1573,20 @@
     }
 
     var raw = null;
-    try {
-      raw = localStorage.getItem(STORAGE_KEY);
-    } catch (err) {
-      raw = null;
-    }
-    if (!raw) {
-      setSaveState("保存先：この端末（ブラウザ内）");
-      return;
-    }
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch (err) { raw = null; }
+    if (!raw) { return; }
 
     var data;
-    try {
-      data = JSON.parse(raw);
-    } catch (err) {
-      return;
-    }
+    try { data = JSON.parse(raw); } catch (err) { return; }
     if (!data || typeof data !== "object") { return; }
 
-    if (data.sid)   { document.getElementById("studentId").textContent    = data.sid; }
-    if (data.name)  { document.getElementById("studentName").textContent  = data.name; }
-    if (data.birth) { document.getElementById("studentBirth").textContent = data.birth; }
+    var map = { name: "valName", roman: "valRoman", sid: "valId",
+                cls: "valClass", birth: "valBirth" };
+    Object.keys(map).forEach(function (key) {
+      if (data[key]) { document.getElementById(map[key]).textContent = data[key]; }
+    });
 
-    renderBarcode(document.getElementById("studentId").textContent.trim());
+    renderBarcode(textOf("valId"));
 
     if (typeof data.point === "number" && isFinite(data.point) && data.point >= 0) {
       currentPoint = Math.round(data.point);
@@ -1629,24 +1601,18 @@
     setSaveState("前回の内容を復元しました");
   }
 
-  // ページを閉じる直前にも確実に書き込む
   window.addEventListener("pagehide", function () {
-    if (saveTimer !== null) {
-      clearTimeout(saveTimer);
-      saveAll();
-    }
+    if (saveTimer !== null) { clearTimeout(saveTimer); saveAll(); }
   });
 
-  btnClear.addEventListener("click", function () {
+  document.getElementById("btnClearData").addEventListener("click", function () {
     if (!window.confirm("この端末に保存した内容（写真・氏名・ポイント）を消去します。よろしいですか？")) {
       return;
     }
     try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* 無視 */ }
 
-    document.getElementById("studentId").textContent    = "S01T004651";
-    document.getElementById("studentName").textContent  = "綾小路 清隆";
-    document.getElementById("studentBirth").textContent = "2010年10月20日";
-    renderBarcode("S01T004651");
+    editables.forEach(function (el) { el.textContent = el.getAttribute("data-default"); });
+    renderBarcode(textOf("valId"));
 
     if (photoImg && photoImg.parentNode) { photoImg.parentNode.removeChild(photoImg); }
     photoImg = null;
@@ -1665,111 +1631,34 @@
   restoreAll();
 
   /* =================================================================
-     7. ホーム画面アプリ（PWA）用のアイコンとマニフェストを生成
-        1 ファイル構成のため外部ファイルを持てない。アイコンを canvas で
-        描き、マニフェストごと data URL として埋め込む
+     9. 画像として書き出す（表面・裏面を別々の PNG に）
+        外部ライブラリを使わず、同じ絵を canvas に描き直す。
+        位置は実際の DOM から取るので画面の見た目とずれない。
      ================================================================= */
-  function drawIcon(size, maskable) {
-    var canvas = document.createElement("canvas");
-    canvas.width  = size;
-    canvas.height = size;
-    var ctx = canvas.getContext("2d");
+  var EXPORT_SCALE = 4;      // 380×240 → 1520×960（名刺サイズで約450dpi）
 
-    var grd = ctx.createLinearGradient(0, 0, size, size);
-    grd.addColorStop(0, "#2f6fb8");
-    grd.addColorStop(1, "#14294a");
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, size, size);
-
-    // マスカブルアイコンは外周を切られてもよいよう内側に描く
-    var pad    = maskable ? size * 0.20 : size * 0.13;
-    var innerW = size - pad * 2;
-    var cardH  = innerW * 0.66;
-    var cardY  = (size - cardH) / 2;
-
-    ctx.strokeStyle = "rgba(255,255,255,0.85)";
-    ctx.lineWidth = Math.max(2, size * 0.016);
-    ctx.strokeRect(pad, cardY, innerW, cardH);
-
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.fillRect(pad, cardY + cardH * 0.27, innerW, Math.max(1, size * 0.014));
-
-    ctx.fillStyle = "#ffffff";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = "bold " + Math.round(innerW * 0.27) + "px " +
-               '"Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif';
-    ctx.fillText("学生証", size / 2, cardY + cardH * 0.66);
-
-    return canvas.toDataURL("image/png");
-  }
-
-  try {
-    var icon192  = drawIcon(192, false);
-    var icon512  = drawIcon(512, false);
-    var maskable = drawIcon(512, true);
-
-    var manifest = {
-      name: "高度育成高等学校 学生証",
-      short_name: "学生証",
-      description: "高度育成高等学校の学生証",
-      start_url: location.href.split("#")[0],
-      scope: location.href.replace(/[^/]*$/, ""),
-      display: "standalone",
-      orientation: "portrait",
-      background_color: "#e9eff6",
-      theme_color: "#eef4fb",
-      icons: [
-        { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
-        { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
-        { src: maskable, sizes: "512x512", type: "image/png", purpose: "maskable" }
-      ]
-    };
-
-    document.getElementById("manifestLink").href =
-      "data:application/manifest+json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(manifest));
-
-    document.getElementById("appleIcon").href   = icon192;   // iOS ホーム画面
-    document.getElementById("faviconLink").href = icon192;   // タブのアイコン
-  } catch (err) {
-    // アイコン生成に失敗してもアプリ本体の動作には影響させない
-  }
-
-  /* =================================================================
-     8. 学生証を画像（PNG）として書き出す
-        外部ライブラリを使わず、カードと同じ絵を canvas に描き直す。
-        文字や写真の位置は実際の DOM から測るので、名前の長さが
-        変わっても画面の見た目とずれない。
-     ================================================================= */
-  var EXPORT_SCALE = 3;                       // 380×240 → 1140×720
-  var FONT_FAMILY  = '"Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic, ' +
-                     'Meiryo, "Noto Sans JP", sans-serif';
-  var MONO_FAMILY  = '"SFMono-Regular", Menlo, Consolas, "Courier New", monospace';
-
-  var idCardEl     = document.getElementById("idCard");
-  var btnExport    = document.getElementById("btnExport");
-  var exportStatus = document.getElementById("exportStatus");
-  var exportBox    = document.getElementById("exportPreview");
-  var exportImage  = document.getElementById("exportImage");
-  var exportHelp   = document.getElementById("exportHelp");
+  var btnExportFront = document.getElementById("btnExportFront");
+  var btnExportBack  = document.getElementById("btnExportBack");
+  var exportStatus   = document.getElementById("exportStatus");
+  var exportBox      = document.getElementById("exportPreview");
+  var exportImage    = document.getElementById("exportImage");
+  var exportHelp     = document.getElementById("exportHelp");
 
   function setExportStatus(msg, type) {
     exportStatus.textContent = msg;
-    exportStatus.className = "export-status" + (type ? " " + type : "");
+    exportStatus.className = "status" + (type ? " " + type : "");
   }
 
-  // 要素の位置をカード左上からの座標（縮小前の px）で取得する
-  function rectOf(el) {
-    var r = el.getBoundingClientRect();
-    var c = idCardEl.getBoundingClientRect();
-    var s = cardScale || 1;
-    return {
-      x: (r.left - c.left) / s,
-      y: (r.top  - c.top)  / s,
-      w: r.width  / s,
-      h: r.height / s
-    };
+  /* 位置は offsetLeft / offsetTop で取る。
+     getBoundingClientRect は裏返し（rotateY）や縮小の影響を受けるため使わない */
+  function rectOf(el, root) {
+    var x = 0, y = 0, node = el;
+    while (node && node !== root) {
+      x += node.offsetLeft;
+      y += node.offsetTop;
+      node = node.offsetParent;
+    }
+    return { x: x, y: y, w: el.offsetWidth, h: el.offsetHeight };
   }
 
   function styleOf(el) {
@@ -1781,6 +1670,58 @@
       color:   cs.color || "#000",
       spacing: isFinite(ls) ? ls : 0
     };
+  }
+
+  /* letter-spacing と均等割り付けを再現するため 1 文字ずつ描く */
+  function drawText(ctx, text, x, y, opt) {
+    opt = opt || {};
+    ctx.font = (opt.weight || "400") + " " + opt.size + "px " + (opt.family || FONT_FAMILY);
+    ctx.fillStyle = opt.color || "#000";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "alphabetic";
+
+    var chars = String(text).split("");
+    var widths = [];
+    var sum = 0, i;
+
+    for (i = 0; i < chars.length; i++) {
+      widths[i] = ctx.measureText(chars[i]).width;
+      sum += widths[i];
+    }
+
+    var spacing = opt.spacing || 0;
+    if (opt.justifyWidth && chars.length > 1) {
+      // text-align-last: justify と同じ字送り
+      spacing = (opt.justifyWidth - sum) / (chars.length - 1);
+    }
+
+    var total = sum + spacing * (chars.length - 1);
+    var cx = x;
+    if (opt.align === "right")  { cx = x - total; }
+    if (opt.align === "center") { cx = x - total / 2; }
+
+    for (i = 0; i < chars.length; i++) {
+      ctx.fillText(chars[i], cx, y);
+      cx += widths[i] + spacing;
+    }
+    return total;
+  }
+
+  // 1 行の要素を、その矩形の縦中央に合わせて描く
+  function drawEl(ctx, el, root, opt) {
+    opt = opt || {};
+    var r  = rectOf(el, root);
+    var st = styleOf(el);
+    drawText(ctx, el.textContent.trim(), r.x + (opt.dx || 0),
+             r.y + r.h / 2 + st.size * 0.36, {
+      size:    st.size,
+      weight:  st.weight,
+      color:   opt.color || st.color,
+      spacing: opt.spacing !== undefined ? opt.spacing : st.spacing,
+      family:  opt.family || FONT_FAMILY,
+      align:   opt.align,
+      justifyWidth: opt.justify ? r.w : 0
+    });
   }
 
   function roundRectPath(ctx, x, y, w, h, r) {
@@ -1798,145 +1739,66 @@
     ctx.closePath();
   }
 
-  /* letter-spacing を再現するため 1 文字ずつ描く。
-     ctx.letterSpacing は対応ブラウザが限られるので使わない */
-  function drawText(ctx, text, x, y, opt) {
-    opt = opt || {};
-    ctx.font = (opt.weight || "400") + " " + opt.size + "px " +
-               (opt.family || FONT_FAMILY);
-    ctx.fillStyle = opt.color || "#000";
-    ctx.textBaseline = "alphabetic";
-    ctx.textAlign = "left";
-
-    var spacing = opt.spacing || 0;
-    var chars = String(text).split("");
-    var total = 0, i;
-
-    for (i = 0; i < chars.length; i++) {
-      total += ctx.measureText(chars[i]).width + spacing;
-    }
-
-    var startX = x;
-    if (opt.align === "right")  { startX = x - total; }
-    if (opt.align === "center") { startX = x - total / 2; }
-
-    var cx = startX;
-    for (i = 0; i < chars.length; i++) {
-      ctx.fillText(chars[i], cx, y);
-      cx += ctx.measureText(chars[i]).width + spacing;
-    }
-    return total;
-  }
-
-  // 1 行の要素を、その矩形の縦中央に合わせて描く
-  function drawElementText(ctx, el, opt) {
-    var r  = rectOf(el);
-    var st = styleOf(el);
-    var o  = {
-      size:    st.size,
-      weight:  st.weight,
-      color:   st.color,
-      spacing: st.spacing,
-      family:  (opt && opt.family) || FONT_FAMILY
-    };
-    // padding を含めた矩形の中で、文字の見た目が中央に来る位置
-    var baseline = r.y + r.h / 2 + st.size * 0.36;
-    var x = r.x + ((opt && opt.padLeft) || 0);
-    drawText(ctx, el.textContent.trim(), x, baseline, o);
-  }
-
-  function renderCardCanvas(scale) {
-    var W = CARD_W, H = CARD_H;
+  function newCardCanvas(scale) {
     var canvas = document.createElement("canvas");
-    canvas.width  = Math.round(W * scale);
-    canvas.height = Math.round(H * scale);
+    canvas.width  = Math.round(CARD_W * scale);
+    canvas.height = Math.round(CARD_H * scale);
     var ctx = canvas.getContext("2d");
     ctx.scale(scale, scale);
+    return { canvas: canvas, ctx: ctx };
+  }
 
-    /* --- 角丸でクリップ --- */
+  /* ---------------------------- 表面 ---------------------------- */
+  function renderFront(scale) {
+    var made = newCardCanvas(scale);
+    var ctx = made.ctx;
+
     ctx.save();
-    roundRectPath(ctx, 0, 0, W, H, 14);
+    roundRectPath(ctx, 0, 0, CARD_W, CARD_H, 10);
     ctx.clip();
 
-    /* --- 背景グラデーション（135deg） --- */
-    var bg = ctx.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0.00, "#ffffff");
-    bg.addColorStop(0.38, "#f4f9ff");
-    bg.addColorStop(0.72, "#e6f0fb");
-    bg.addColorStop(1.00, "#dbe9f8");
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
+    // 用紙
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CARD_W, CARD_H);
 
-    /* --- 斜めの地紋（-45度の細い白線） --- */
+    // 校章の透かし（DOM 上の canvas と同じ位置・大きさ）
+    var wmR = rectOf(document.getElementById("crestWatermark"), cardFront);
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.5)";
-    ctx.lineWidth = 1;
-    ctx.translate(W / 2, H / 2);
-    ctx.rotate(-Math.PI / 4);
-    var span = (W + H);
-    for (var g = -span; g < span; g += 10) {
-      ctx.beginPath();
-      ctx.moveTo(g, -span);
-      ctx.lineTo(g, span);
-      ctx.stroke();
-    }
+    ctx.globalAlpha = 0.05;
+    drawCrest(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1, wmR.w * 0.74, "#7c2230", 1, "#ffffff");
     ctx.restore();
 
-    /* --- 右下の校章風ウォーターマーク --- */
-    ctx.save();
-    ctx.strokeStyle = "rgba(70,122,184,0.07)";
-    ctx.lineWidth = 12;
-    ctx.beginPath();
-    ctx.arc(326, 198, 82, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(70,122,184,0.06)";
-    ctx.beginPath();
-    ctx.arc(326, 198, 60, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    // ヘッダーの帯
+    var hg = ctx.createLinearGradient(0, 0, 0, 30);
+    hg.addColorStop(0.00, "#8b2735");
+    hg.addColorStop(0.55, "#7c2230");
+    hg.addColorStop(1.00, "#6f1d29");
+    ctx.fillStyle = hg;
+    ctx.fillRect(0, 0, CARD_W, 31);
 
-    /* --- ヘッダー --- */
-    drawElementText(ctx, document.querySelector(".school-name"));
-
-    var enEl = document.querySelector(".header-en");
-    var enR  = rectOf(enEl);
-    var enS  = styleOf(enEl);
-    drawText(ctx, enEl.textContent.trim(), enR.x + enR.w, enR.y + enR.h / 2 + enS.size * 0.36, {
-      size: enS.size, weight: enS.weight, color: enS.color,
-      spacing: enS.spacing, align: "right"
+    drawText(ctx, "学生証", CARD_W / 2, 21, {
+      size: 15, weight: "800", color: "#ffffff", spacing: 15 * 0.34, align: "center"
     });
 
-    /* --- ヘッダー下の青いライン --- */
-    var lineR = rectOf(document.querySelector(".header-line"));
-    var lg = ctx.createLinearGradient(lineR.x, 0, lineR.x + lineR.w, 0);
-    lg.addColorStop(0.00, "#1f5fa8");
-    lg.addColorStop(0.55, "#3f88d3");
-    lg.addColorStop(1.00, "rgba(63,136,211,0.15)");
-    ctx.fillStyle = lg;
-    roundRectPath(ctx, lineR.x, lineR.y, lineR.w, lineR.h, 1);
-    ctx.fill();
-
-    /* --- 写真エリア --- */
-    var pR = rectOf(photoArea);
+    // --- 写真 ---
+    var pR = rectOf(photoArea, cardFront);
+    pR.x += 1; pR.y += 1;                       // カードの枠線 1px 分
     ctx.save();
-    roundRectPath(ctx, pR.x, pR.y, pR.w, pR.h, 4);
+    ctx.beginPath();
+    ctx.rect(pR.x, pR.y, pR.w, pR.h);
     ctx.clip();
 
     if (photoImg && photoImg.naturalWidth) {
-      // アスペクト比を保って枠いっぱいに収める（object-fit: cover と同じ計算）
-      var iw = photoImg.naturalWidth;
-      var ih = photoImg.naturalHeight;
+      // object-fit: cover と同じ計算
+      var iw = photoImg.naturalWidth, ih = photoImg.naturalHeight;
       var s  = Math.max(pR.w / iw, pR.h / ih);
-      var sw = pR.w / s;
-      var sh = pR.h / s;
-      ctx.drawImage(photoImg, (iw - sw) / 2, (ih - sh) / 2, sw, sh,
-                    pR.x, pR.y, pR.w, pR.h);
+      var sw = pR.w / s, sh = pR.h / s;
+      ctx.drawImage(photoImg, (iw - sw) / 2, (ih - sh) / 2, sw, sh, pR.x, pR.y, pR.w, pR.h);
     } else {
-      // 未設定時は画面と同じ斜めストライプ
-      ctx.fillStyle = "#f7fbff";
+      ctx.fillStyle = "#faf7f8";
       ctx.fillRect(pR.x, pR.y, pR.w, pR.h);
       ctx.save();
-      ctx.strokeStyle = "#eef5fd";
+      ctx.strokeStyle = "#f2ebed";
       ctx.lineWidth = 6;
       ctx.translate(pR.x, pR.y);
       ctx.rotate(Math.PI / 4);
@@ -1948,52 +1810,42 @@
       }
       ctx.restore();
       drawText(ctx, "PHOTO", pR.x + pR.w / 2, pR.y + pR.h / 2 + 3, {
-        size: 11, weight: "700", color: "#a9c0d8", spacing: 2, align: "center"
+        size: 11, weight: "700", color: "#c3aeb3", spacing: 2, align: "center"
       });
     }
     ctx.restore();
 
-    ctx.strokeStyle = "#9fb8d4";
+    ctx.strokeStyle = "#b09aa0";
     ctx.lineWidth = 1;
-    roundRectPath(ctx, pR.x + 0.5, pR.y + 0.5, pR.w - 1, pR.h - 1, 4);
-    ctx.stroke();
+    ctx.strokeRect(pR.x + 0.5, pR.y + 0.5, pR.w - 1, pR.h - 1);
 
-    /* --- 右側の 3 項目 --- */
-    var fields = [
-      { label: "#field-id .label",    value: "#studentId",    mono: true  },
-      { label: "#field-name .label",  value: "#studentName",  mono: false },
-      { label: "#field-birth .label", value: "#studentBirth", mono: false }
-    ];
-
-    fields.forEach(function (f) {
-      drawElementText(ctx, document.querySelector(f.label));
-
-      var vEl = document.querySelector(f.value);
-      var vR  = rectOf(vEl);
-      var vS  = styleOf(vEl);
-
-      // 値の下の破線
-      ctx.save();
-      ctx.strokeStyle = "rgba(90,123,163,0.45)";
-      ctx.lineWidth = 1;
-      if (ctx.setLineDash) { ctx.setLineDash([2, 2]); }
-      ctx.beginPath();
-      ctx.moveTo(vR.x, vR.y + vR.h - 0.5);
-      ctx.lineTo(vR.x + vR.w, vR.y + vR.h - 0.5);
-      ctx.stroke();
-      ctx.restore();
-
-      drawText(ctx, vEl.textContent.trim(), vR.x + 4, vR.y + vR.h / 2 + vS.size * 0.34, {
-        size: vS.size, weight: vS.weight, color: vS.color,
-        spacing: vS.spacing, family: f.mono ? MONO_FAMILY : FONT_FAMILY
-      });
+    // --- 項目名（均等割り付け）と値 ---
+    ["labName", "labId", "labClass", "labBirth"].forEach(function (id) {
+      drawEl(ctx, document.getElementById(id), cardFront, { dx: 1, justify: true });
     });
 
-    /* --- バーコード --- */
-    var bR = rectOf(barcodeEl);
+    drawEl(ctx, document.getElementById("valName"),  cardFront, { dx: 1 });
+    drawEl(ctx, document.getElementById("valRoman"), cardFront, { dx: 1 });
+    drawEl(ctx, document.getElementById("valId"),    cardFront, { dx: 1, family: MONO_FAMILY });
+    drawEl(ctx, document.getElementById("valClass"), cardFront, { dx: 1 });
+    drawEl(ctx, document.getElementById("valBirth"), cardFront, { dx: 1 });
+
+    // --- 区切り線 ---
+    ["rule1", "rule2"].forEach(function (id) {
+      var r = rectOf(document.getElementById(id), cardFront);
+      ctx.fillStyle = "#d8c4c8";
+      ctx.fillRect(r.x + 1, r.y + 1, r.w, 1);
+    });
+
+    // --- 証明文 ---
+    drawEl(ctx, document.querySelector(".certify"), cardFront, { dx: 1 });
+
+    // --- バーコード ---
+    var bR = rectOf(barcodeEl, cardFront);
+    bR.x += 1; bR.y += 1;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(bR.x, bR.y, bR.w, bR.h);
-    ctx.strokeStyle = "rgba(120,156,200,0.5)";
+    ctx.strokeStyle = "#d8c4c8";
     ctx.lineWidth = 1;
     ctx.strokeRect(bR.x + 0.5, bR.y + 0.5, bR.w - 1, bR.h - 1);
 
@@ -2001,47 +1853,44 @@
     ctx.beginPath();
     ctx.rect(bR.x + 1, bR.y + 1, bR.w - 2, bR.h - 2);
     ctx.clip();
-    ctx.fillStyle = "#16233a";
-    var bx = bR.x + 3;
+    ctx.fillStyle = "#241a1c";
+    var bx = bR.x + 4;
     for (var i = 0; i < barcodeBars.length; i++) {
-      var bar = barcodeBars[i];
-      if (bar.ink) { ctx.fillRect(bx, bR.y + 2, bar.w, bR.h - 4); }
-      bx += bar.w + 1;                 // gap: 1px（画面の flex gap と同じ）
+      if (barcodeBars[i].ink) { ctx.fillRect(bx, bR.y + 3, barcodeBars[i].w, bR.h - 6); }
+      bx += barcodeBars[i].w + 1;      // 画面の flex gap と同じ 1px
     }
     ctx.restore();
 
-    drawElementText(ctx, barcodeCaption, { family: MONO_FAMILY });
+    drawEl(ctx, barcodeCaption, cardFront, { dx: 1, family: MONO_FAMILY });
 
-    /* --- 学校長 印 --- */
-    var txtEl = document.querySelector(".principal .txt");
-    var txtR  = rectOf(txtEl);
-    var txtS  = styleOf(txtEl);
-    var lines = ["高度育成高等学校", "学校長　印"];
-    var lh = txtR.h / lines.length;
-    lines.forEach(function (line, idx) {
-      drawText(ctx, line, txtR.x, txtR.y + lh * idx + lh / 2 + txtS.size * 0.36, {
-        size: txtS.size, weight: txtS.weight, color: txtS.color, spacing: txtS.spacing
+    // --- 学校長印 ---
+    var lblEl = document.querySelector(".stamp-label");
+    var lblR  = rectOf(lblEl, cardFront);
+    var lblS  = styleOf(lblEl);
+    ["高度育成高等学校", "学校長　印"].forEach(function (line, idx) {
+      drawText(ctx, line, lblR.x + lblR.w + 1, lblR.y + 1 + 13 * idx + 9.5, {
+        size: lblS.size, weight: lblS.weight, color: lblS.color, align: "right"
       });
     });
 
-    // 朱印（-8度傾けた赤い丸に縦書きの氏名）
     var stampEl = document.getElementById("stampEl");
-    var sR = rectOf(stampEl);
-    var stampChars = stampEl.textContent.replace(/\s+/g, "").split("");
+    var sR = rectOf(stampEl, cardFront);
+    var chars = stampEl.textContent.replace(/\s+/g, "").split("");
+
     ctx.save();
-    ctx.globalAlpha = 0.85;
-    ctx.translate(sR.x + sR.w / 2, sR.y + sR.h / 2);
+    ctx.globalAlpha = 0.86;
+    ctx.translate(sR.x + sR.w / 2 + 1, sR.y + sR.h / 2 + 1);
     ctx.rotate(-8 * Math.PI / 180);
     ctx.strokeStyle = "#c0392b";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.arc(0, 0, sR.w / 2 - 0.8, 0, Math.PI * 2);
+    ctx.arc(0, 0, sR.w / 2 - 0.9, 0, Math.PI * 2);
     ctx.stroke();
 
-    var chSize = stampChars.length > 2 ? 8.5 : 11;
-    var chGap  = chSize * 1.0;
-    var top    = -((stampChars.length - 1) * chGap) / 2;
-    stampChars.forEach(function (ch, idx) {
+    var chSize = chars.length > 2 ? 10 : 13;
+    var chGap  = chSize * 1.02;
+    var top    = -((chars.length - 1) * chGap) / 2;
+    chars.forEach(function (ch, idx) {
       drawText(ctx, ch, 0, top + chGap * idx + chSize * 0.36, {
         size: chSize, weight: "800", color: "#c0392b", align: "center"
       });
@@ -2050,13 +1899,51 @@
 
     ctx.restore();   // クリップ解除
 
-    /* --- カードの外枠 --- */
-    ctx.strokeStyle = "rgba(120,156,200,0.55)";
+    // カードの枠
+    ctx.strokeStyle = "#7c2230";
     ctx.lineWidth = 1;
-    roundRectPath(ctx, 0.5, 0.5, W - 1, H - 1, 14);
+    roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
     ctx.stroke();
 
-    return canvas;
+    return made.canvas;
+  }
+
+  /* ---------------------------- 裏面 ---------------------------- */
+  function renderBack(scale) {
+    var made = newCardCanvas(scale);
+    var ctx = made.ctx;
+
+    ctx.save();
+    roundRectPath(ctx, 0, 0, CARD_W, CARD_H, 10);
+    ctx.clip();
+
+    var bg = ctx.createLinearGradient(0, 0, CARD_W * 0.6, CARD_H);
+    bg.addColorStop(0.00, "#8b2735");
+    bg.addColorStop(0.52, "#7c2230");
+    bg.addColorStop(1.00, "#661a26");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, CARD_W, CARD_H);
+
+    var cR = rectOf(document.getElementById("crestBack"), cardBack);
+    drawCrest(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1, cR.w * 0.74, "#ffffff", 1, "#7a2130");
+
+    var schoolEl = document.querySelector(".back-school");
+    var schoolR  = rectOf(schoolEl, cardBack);
+    var schoolS  = styleOf(schoolEl);
+    drawText(ctx, schoolEl.textContent.trim(), CARD_W / 2,
+             schoolR.y + 1 + schoolR.h / 2 + schoolS.size * 0.36, {
+      size: schoolS.size, weight: "800", color: "#ffffff",
+      spacing: schoolS.size * 0.18, align: "center"
+    });
+
+    ctx.restore();
+
+    ctx.strokeStyle = "#6f1d29";
+    ctx.lineWidth = 1;
+    roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
+    ctx.stroke();
+
+    return made.canvas;
   }
 
   // DataURL → Blob（同期処理。iOS の共有シートは操作直後にしか開けないため）
@@ -2064,52 +1951,49 @@
     var parts  = dataUrl.split(",");
     var mime   = /:(.*?);/.exec(parts[0])[1];
     var binary = atob(parts[1]);
-    var len    = binary.length;
-    var buf    = new Uint8Array(len);
-    for (var i = 0; i < len; i++) { buf[i] = binary.charCodeAt(i); }
+    var buf    = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) { buf[i] = binary.charCodeAt(i); }
     return new Blob([buf], { type: mime });
   }
 
-  function buildFileName() {
-    var name = document.getElementById("studentName").textContent.trim();
-    name = name.replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 24) || "student";
-    return "学生証_" + name + ".png";
+  function buildFileName(side) {
+    var name = textOf("valName").replace(/[\\/:*?"<>|\s]+/g, "_").slice(0, 24) || "student";
+    return "学生証_" + name + "_" + side + ".png";
   }
 
-  function showPreview(dataUrl, helpText) {
-    exportImage.src = dataUrl;
-    exportHelp.textContent = helpText;
-    exportBox.classList.add("shown");
-  }
+  function exportSide(side) {
+    var btn = (side === "back") ? btnExportBack : btnExportFront;
+    var label = (side === "back") ? "裏面" : "表面";
 
-  btnExport.addEventListener("click", function () {
-    btnExport.disabled = true;
-    setExportStatus("画像を作成中…", "");
+    btn.disabled = true;
+    setExportStatus(label + "の画像を作成中…", "");
 
-    var dataUrl, blob, file;
+    var dataUrl, blob;
     try {
-      dataUrl = renderCardCanvas(EXPORT_SCALE).toDataURL("image/png");
+      var canvas = (side === "back") ? renderBack(EXPORT_SCALE) : renderFront(EXPORT_SCALE);
+      dataUrl = canvas.toDataURL("image/png");
       blob    = dataUrlToBlob(dataUrl);
     } catch (err) {
       setExportStatus("画像を作成できませんでした：" + err.message, "ng");
-      btnExport.disabled = false;
+      btn.disabled = false;
       return;
     }
 
-    var fileName = buildFileName();
+    var fileName = buildFileName(side === "back" ? "裏" : "表");
+
+    exportImage.src = dataUrl;
+    exportBox.classList.add("shown");
 
     // 1) 共有シート（iPhone はここから「画像を保存」で写真アプリに入る）
     try {
-      file = new File([blob], fileName, { type: "image/png" });
+      var file = new File([blob], fileName, { type: "image/png" });
       if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-        navigator.share({ files: [file], title: "学生証" }).then(function () {
-          setExportStatus("画像を書き出しました。", "ok");
-        })["catch"](function () {
-          // 共有をキャンセルした場合もここに来るため、保存手段は残しておく
-          setExportStatus("下のプレビューからも保存できます。", "");
-        });
-        showPreview(dataUrl, "共有が開かない場合は、この画像を長押し →『写真に追加』で保存できます。");
-        btnExport.disabled = false;
+        exportHelp.textContent =
+          "共有が開かない場合は、この画像を長押し →『写真に追加』で保存できます。";
+        navigator.share({ files: [file], title: "学生証（" + label + "）" })
+          .then(function () { setExportStatus(label + "を書き出しました。", "ok"); })
+          ["catch"](function () { setExportStatus("下のプレビューからも保存できます。", ""); });
+        btn.disabled = false;
         return;
       }
     } catch (err) {
@@ -2134,18 +2018,71 @@
       ok = false;
     }
 
-    // 3) どちらも使えない場合はプレビューから手動保存してもらう
-    showPreview(
-      dataUrl,
-      ok ? "保存先が分からない場合は、この画像を長押し（右クリック）でも保存できます。"
-         : "この画像を長押し（右クリック）→「画像を保存」で保存してください。"
-    );
-    setExportStatus(
-      ok ? "画像を保存しました（" + fileName + "）" : "下のプレビューから保存してください。",
-      ok ? "ok" : ""
-    );
-    btnExport.disabled = false;
-  });
+    // 3) どちらも使えない場合はプレビューから手動保存
+    exportHelp.textContent = ok
+      ? "保存先が分からない場合は、この画像を長押し（右クリック）でも保存できます。"
+      : "この画像を長押し（右クリック）→「画像を保存」で保存してください。";
+    setExportStatus(ok ? label + "を保存しました（" + fileName + "）"
+                       : "下のプレビューから保存してください。", ok ? "ok" : "");
+    btn.disabled = false;
+  }
+
+  btnExportFront.addEventListener("click", function () { exportSide("front"); });
+  btnExportBack.addEventListener("click", function () { exportSide("back"); });
+
+  /* =================================================================
+     10. ホーム画面アプリ（PWA）用のアイコンとマニフェスト
+     ================================================================= */
+  function drawIcon(size, maskable) {
+    var canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    var ctx = canvas.getContext("2d");
+
+    var grd = ctx.createLinearGradient(0, 0, size, size);
+    grd.addColorStop(0, "#8b2735");
+    grd.addColorStop(1, "#661a26");
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, size, size);
+
+    // マスカブルは外周を切られてもよいよう内側に描く
+    var inner = size * (maskable ? 0.56 : 0.68);
+    drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, "#7a2130");
+
+    return canvas.toDataURL("image/png");
+  }
+
+  try {
+    var icon192  = drawIcon(192, false);
+    var icon512  = drawIcon(512, false);
+    var maskable = drawIcon(512, true);
+
+    var manifest = {
+      name: "東京都高度育成高等学校 学生証",
+      short_name: "学生証",
+      description: "高度育成高等学校の学生証",
+      start_url: location.href.split("#")[0],
+      scope: location.href.replace(/[^/]*$/, ""),
+      display: "standalone",
+      orientation: "portrait",
+      background_color: "#efe9e8",
+      theme_color: "#7c2230",
+      icons: [
+        { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
+        { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
+        { src: maskable, sizes: "512x512", type: "image/png", purpose: "maskable" }
+      ]
+    };
+
+    document.getElementById("manifestLink").href =
+      "data:application/manifest+json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(manifest));
+
+    document.getElementById("appleIcon").href   = icon192;
+    document.getElementById("faviconLink").href = icon192;
+  } catch (err) {
+    // アイコン生成に失敗してもアプリ本体の動作には影響させない
+  }
 
 })();
 </script>
