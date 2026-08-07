@@ -899,6 +899,19 @@
     <span class="status" id="photoStatus">写真は未設定です。</span>
   </div>
 
+  <!-- 校章の画像を差し替える -->
+  <input type="file" id="logoInput" accept="image/*" class="file-input">
+
+  <div class="tool-row">
+    <label class="btn btn-photo" for="logoInput">校章の画像を選択</label>
+    <button type="button" class="link-btn" id="btnLogoMono">白抜き：ON</button>
+    <button type="button" class="link-btn" id="btnLogoClear">初期デザインに戻す</button>
+  </div>
+
+  <div class="tool-row">
+    <span class="status" id="logoStatus">校章：初期デザイン（描画）</span>
+  </div>
+
   <!-- 表裏を別々の PNG で書き出す（シール印刷用） -->
   <div class="tool-row">
     <button type="button" class="btn btn-export" id="btnExportFront">表面を保存</button>
@@ -948,7 +961,8 @@
     <b>使い方</b>：写真枠、または「写真を選択」ボタンで端末の写真を挿入できます。
     氏名・ローマ字・学籍番号・クラス・生年月日はタップして直接書き換えられます。
     「表面」「裏面」で面を切り替え、それぞれ別の PNG として保存できます。
-    入力内容と写真はこの端末に自動保存されます。
+    校章は「校章の画像を選択」で好きな画像に差し替えられます（白抜き ON なら白地のロゴでも裏面にきれいに乗ります）。
+    入力内容・写真・校章はこの端末に自動保存されます。
   </p>
 
   <div class="install-note" id="installNote">
@@ -1425,19 +1439,220 @@
     ctx.restore();
   }
 
-  // 画面用：表面の透かしと裏面の校章を canvas で描いておく
+  /* -----------------------------------------------------------------
+     校章の画像差し替え
+     画像を選ぶと、上の描画のかわりにその画像を使う。
+     既定では「白抜き」＝明るい部分を透過させてカードの色で描くので、
+     白地に黒のロゴでも裏面（えんじ色）にきれいに乗る。
+     ----------------------------------------------------------------- */
+  var logoInput      = document.getElementById("logoInput");
+  var logoStatus     = document.getElementById("logoStatus");
+  var btnLogoMono    = document.getElementById("btnLogoMono");
+  var btnLogoClear   = document.getElementById("btnLogoClear");
+
+  var logoSourceImg  = null;   // 選択された画像
+  var logoSourceData = null;   // 保存用の DataURL
+  var logoMono       = true;   // 白抜きするか
+  var logoMaskCanvas = null;   // 白抜きしたシルエット
+  var logoTintCache  = {};     // 色ごとの描画結果
+
+  function setLogoStatus(msg, type) {
+    logoStatus.textContent = msg;
+    logoStatus.className = "status" + (type ? " " + type : "");
+  }
+
+  // 明るい部分を透かして、白いシルエットにする
+  function buildLogoMask(img) {
+    var maxSide = 512;
+    var iw = img.naturalWidth  || img.width;
+    var ih = img.naturalHeight || img.height;
+    var scale = Math.min(1, maxSide / iw, maxSide / ih);
+    var w = Math.max(1, Math.round(iw * scale));
+    var h = Math.max(1, Math.round(ih * scale));
+
+    var canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    var ctx = canvas.getContext("2d");
+
+    // いったん白地に載せてから明度を見る。
+    // こうすると、透過 PNG でも「透明＝白＝抜く」と同じ扱いになり、
+    // ロゴの内側の白い線もちゃんと抜ける
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+
+    var image = ctx.getImageData(0, 0, w, h);
+    var p = image.data;
+    var HI = 235, LO = 60;
+
+    for (var i = 0; i < p.length; i += 4) {
+      var l = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+      var a = l >= HI ? 0 : (l <= LO ? 255 : Math.round((HI - l) * 255 / (HI - LO)));
+      p[i] = 255; p[i + 1] = 255; p[i + 2] = 255; p[i + 3] = a;
+    }
+
+    ctx.putImageData(image, 0, 0);
+    return canvas;
+  }
+
+  function tintLogo(mask, color) {
+    var canvas = document.createElement("canvas");
+    canvas.width = mask.width;
+    canvas.height = mask.height;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(mask, 0, 0);
+    ctx.globalCompositeOperation = "source-in";
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return canvas;
+  }
+
+  // その色で描くべき校章画像を返す（画像未設定なら null）
+  function getLogoFor(color) {
+    if (!logoSourceImg) { return null; }
+    if (!logoMono) { return logoSourceImg; }
+    if (!logoMaskCanvas) { logoMaskCanvas = buildLogoMask(logoSourceImg); }
+    if (!logoTintCache[color]) { logoTintCache[color] = tintLogo(logoMaskCanvas, color); }
+    return logoTintCache[color];
+  }
+
+  // 枠に収まるよう縦横比を保って中央に描く
+  function drawLogoFit(ctx, src, cx, cy, boxW, boxH) {
+    var w = src.naturalWidth  || src.width;
+    var h = src.naturalHeight || src.height;
+    if (!w || !h) { return; }
+    var s = Math.min(boxW / w, boxH / h);
+    ctx.drawImage(src, cx - w * s / 2, cy - h * s / 2, w * s, h * s);
+  }
+
+  /* 校章を描く共通の入口。画像があれば画像、なければ組み込みの描画 */
+  function drawEmblem(ctx, cx, cy, boxW, boxH, color, bgFill, noHatch) {
+    var logo = getLogoFor(color);
+    if (logo) {
+      drawLogoFit(ctx, logo, cx, cy, boxW, boxH);
+    } else {
+      drawCrest(ctx, cx, cy, Math.min(boxW, boxH) * 0.70, color, 1, bgFill, noHatch);
+    }
+  }
+
   function paintCrestCanvas(canvas, cssSize, color, bgFill, noHatch) {
     var ratio = Math.min(3, window.devicePixelRatio || 1) * 2;
     canvas.width  = Math.round(cssSize * ratio);
     canvas.height = Math.round(cssSize * ratio);
     var ctx = canvas.getContext("2d");
     ctx.scale(ratio, ratio);
-    drawCrest(ctx, cssSize / 2, cssSize / 2, cssSize * 0.70, color, 1, bgFill, noHatch);
+    ctx.clearRect(0, 0, cssSize, cssSize);
+    drawEmblem(ctx, cssSize / 2, cssSize / 2, cssSize, cssSize, color, bgFill, noHatch);
   }
 
-  // 透かしは文字の読みやすさを優先して斜線を省く
-  paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff", true);
-  paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", "#7a2130");
+  function refreshEmblems() {
+    // 透かしは文字の読みやすさを優先して斜線を省く
+    paintCrestCanvas(document.getElementById("crestWatermark"), 156, "#7c2230", "#ffffff", true);
+    paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", "#7a2130");
+    if (typeof buildAppIcons === "function") { buildAppIcons(); }
+  }
+
+  function applyLogoImage(img, dataUrl, quiet) {
+    logoSourceImg  = img;
+    logoMaskCanvas = null;
+    logoTintCache  = {};
+    if (dataUrl) { logoSourceData = dataUrl; }
+    refreshEmblems();
+    setLogoStatus(quiet ? "校章：保存された画像を復元しました"
+                        : "校章：画像を設定しました（" + img.naturalWidth + "×" +
+                          img.naturalHeight + "）", quiet ? "" : "ok");
+  }
+
+  // 保存用に縮小した DataURL を作る
+  function logoToDataUrl(img) {
+    var maxSide = 420;
+    var iw = img.naturalWidth  || img.width;
+    var ih = img.naturalHeight || img.height;
+    var scale = Math.min(1, maxSide / iw, maxSide / ih);
+    var w = Math.max(1, Math.round(iw * scale));
+    var h = Math.max(1, Math.round(ih * scale));
+
+    var canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+
+    // 透明部分があれば PNG、なければ軽い JPEG で保存する
+    // （拡大縮小の縁だけがわずかに透明になることがあるので、割合で判定する）
+    var hasAlpha = false;
+    try {
+      var p = ctx.getImageData(0, 0, w, h).data;
+      var clear = 0;
+      for (var i = 3; i < p.length; i += 4) {
+        if (p[i] < 250) { clear++; }
+      }
+      hasAlpha = clear > (p.length / 4) * 0.01;
+    } catch (err) {
+      hasAlpha = true;
+    }
+    return hasAlpha ? canvas.toDataURL("image/png")
+                    : canvas.toDataURL("image/jpeg", 0.88);
+  }
+
+  logoInput.addEventListener("change", function () {
+    var file = logoInput.files && logoInput.files[0];
+    if (!file) { return; }
+
+    setLogoStatus("校章：読み込み中…", "");
+
+    var url = null;
+    try { url = URL.createObjectURL(file); } catch (err) { url = null; }
+
+    var img = new Image();
+    img.onload = function () {
+      var data = null;
+      try { data = logoToDataUrl(img); } catch (err) { data = null; }
+      applyLogoImage(img, data);
+      if (url) { setTimeout(function () { URL.revokeObjectURL(url); }, 0); }
+      scheduleSave();
+    };
+    img.onerror = function () {
+      setLogoStatus("校章：画像を読み込めませんでした。", "ng");
+      if (url) { URL.revokeObjectURL(url); }
+    };
+
+    if (url) {
+      img.src = url;
+    } else {
+      var reader = new FileReader();
+      reader.onload = function () { img.src = reader.result; };
+      reader.onerror = function () { setLogoStatus("校章：読み込みに失敗しました。", "ng"); };
+      reader.readAsDataURL(file);
+    }
+
+    logoInput.value = "";
+  });
+
+  btnLogoMono.addEventListener("click", function () {
+    logoMono = !logoMono;
+    btnLogoMono.textContent = "白抜き：" + (logoMono ? "ON" : "OFF");
+    logoTintCache = {};
+    refreshEmblems();
+    if (logoSourceImg) {
+      setLogoStatus(logoMono ? "校章：カードの色で描いています"
+                             : "校章：画像をそのまま表示しています", "");
+    }
+    scheduleSave();
+  });
+
+  btnLogoClear.addEventListener("click", function () {
+    logoSourceImg  = null;
+    logoSourceData = null;
+    logoMaskCanvas = null;
+    logoTintCache  = {};
+    refreshEmblems();
+    setLogoStatus("校章：初期デザイン（描画）", "");
+    scheduleSave();
+  });
+
+  refreshEmblems();
 
   /* =================================================================
      5. 表裏の切り替え
@@ -1641,7 +1856,9 @@
       cls:    textOf("valClass"),
       birth:  textOf("valBirth"),
       point:  currentPoint,
-      photo:  photoData
+      photo:  photoData,
+      logo:   logoSourceData,
+      logoMono: logoMono
     };
 
     try {
@@ -1715,6 +1932,18 @@
     if (typeof data.photo === "string" && data.photo.indexOf("data:") === 0) {
       photoData = data.photo;
       applyPhoto(data.photo, false, null, function () { photoData = null; }, true);
+    }
+
+    if (typeof data.logoMono === "boolean") {
+      logoMono = data.logoMono;
+      btnLogoMono.textContent = "白抜き：" + (logoMono ? "ON" : "OFF");
+    }
+
+    if (typeof data.logo === "string" && data.logo.indexOf("data:") === 0) {
+      var logoImg = new Image();
+      logoImg.onload = function () { applyLogoImage(logoImg, data.logo, true); };
+      logoImg.onerror = function () { setLogoStatus("校章：保存された画像を読み込めませんでした。", "ng"); };
+      logoImg.src = data.logo;
     }
 
     setSaveState("前回の内容を復元しました");
@@ -1884,7 +2113,8 @@
     var wmR = rectOf(document.getElementById("crestWatermark"), cardFront);
     ctx.save();
     ctx.globalAlpha = 0.07;
-    drawCrest(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1, wmR.w * 0.70, "#7c2230", 1, "#ffffff", true);
+    drawEmblem(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1,
+                wmR.w, wmR.h, "#7c2230", "#ffffff", true);
     ctx.restore();
 
     // ヘッダーの帯
@@ -2044,7 +2274,8 @@
     ctx.fillRect(0, 0, CARD_W, CARD_H);
 
     var cR = rectOf(document.getElementById("crestBack"), cardBack);
-    drawCrest(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1, cR.w * 0.70, "#ffffff", 1, "#7a2130");
+    drawEmblem(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1,
+                cR.w, cR.h, "#ffffff", "#7a2130");
 
     var schoolEl = document.querySelector(".back-school");
     var schoolR  = rectOf(schoolEl, cardBack);
@@ -2166,42 +2397,52 @@
 
     // マスカブルは外周を切られてもよいよう内側に描く
     var inner = size * (maskable ? 0.56 : 0.68);
-    drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, "#7a2130");
+    var logo = getLogoFor("#ffffff");
+    if (logo) {
+      drawLogoFit(ctx, logo, size / 2, size / 2, inner, inner);
+    } else {
+      drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, "#7a2130");
+    }
 
     return canvas.toDataURL("image/png");
   }
 
-  try {
-    var icon192  = drawIcon(192, false);
-    var icon512  = drawIcon(512, false);
-    var maskable = drawIcon(512, true);
+  // 校章を差し替えたときはアイコンも作り直す
+  function buildAppIcons() {
+    try {
+      var icon192  = drawIcon(192, false);
+      var icon512  = drawIcon(512, false);
+      var maskable = drawIcon(512, true);
 
-    var manifest = {
-      name: "東京都高度育成高等学校 学生証",
-      short_name: "学生証",
-      description: "東京都高度育成高等学校の学生証",
-      start_url: location.href.split("#")[0],
-      scope: location.href.replace(/[^/]*$/, ""),
-      display: "standalone",
-      orientation: "portrait",
-      background_color: "#efe9e8",
-      theme_color: "#7c2230",
-      icons: [
-        { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
-        { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
-        { src: maskable, sizes: "512x512", type: "image/png", purpose: "maskable" }
-      ]
-    };
+      var manifest = {
+        name: "東京都高度育成高等学校 学生証",
+        short_name: "学生証",
+        description: "東京都高度育成高等学校の学生証",
+        start_url: location.href.split("#")[0],
+        scope: location.href.replace(/[^/]*$/, ""),
+        display: "standalone",
+        orientation: "portrait",
+        background_color: "#efe9e8",
+        theme_color: "#7c2230",
+        icons: [
+          { src: icon192,  sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: icon512,  sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: maskable, sizes: "512x512", type: "image/png", purpose: "maskable" }
+        ]
+      };
 
-    document.getElementById("manifestLink").href =
-      "data:application/manifest+json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(manifest));
+      document.getElementById("manifestLink").href =
+        "data:application/manifest+json;charset=utf-8," +
+        encodeURIComponent(JSON.stringify(manifest));
 
-    document.getElementById("appleIcon").href   = icon192;
-    document.getElementById("faviconLink").href = icon192;
-  } catch (err) {
-    // アイコン生成に失敗してもアプリ本体の動作には影響させない
+      document.getElementById("appleIcon").href   = icon192;
+      document.getElementById("faviconLink").href = icon192;
+    } catch (err) {
+      // アイコン生成に失敗してもアプリ本体の動作には影響させない
+    }
   }
+
+  buildAppIcons();
 
 })();
 </script>
