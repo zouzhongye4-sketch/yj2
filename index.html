@@ -648,6 +648,9 @@
     letter-spacing: 0.08em;
   }
 
+  /* 評価のように短い印を書く欄は中央に寄せる */
+  .b2-cell.mid { text-align: center; }
+
   /* ===================================================================
      操作パネル
      =================================================================== */
@@ -1270,66 +1273,79 @@
           <div class="b2-grid" style="left:12px;  top:192px; width:354px; height:1px"></div>
           <div class="b2-grid" style="left:12px;  top:212px; width:354px; height:1px"></div>
           <div class="b2-grid" style="left:12px;  top:232px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:90px;  top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:168px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:308px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:12px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:86px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:156px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:272px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:320px; top:112px; width:1px; height:121px"></div>
           <div class="b2-grid" style="left:366px; top:112px; width:1px; height:121px"></div>
 
           <!-- 見出し行 -->
-          <div class="b2-cell head ed" id="b2Head1" style="left:13px;  top:113px; width:76px"
+          <div class="b2-cell head ed" id="b2Head1" style="left:13px; top:113px; width:72px"
                contenteditable="true" spellcheck="false" data-default="日時">日時</div>
-          <div class="b2-cell head ed" id="b2Head2" style="left:91px;  top:113px; width:76px"
+          <div class="b2-cell head ed" id="b2Head2" style="left:87px; top:113px; width:68px"
                contenteditable="true" spellcheck="false" data-default="誰と">誰と</div>
-          <div class="b2-cell head ed" id="b2Head3" style="left:169px; top:113px; width:138px"
+          <div class="b2-cell head ed" id="b2Head3" style="left:157px; top:113px; width:114px"
                contenteditable="true" spellcheck="false" data-default="どうした">どうした</div>
-          <div class="b2-cell head ed" id="b2Head4" style="left:309px; top:113px; width:56px"
+          <div class="b2-cell head ed" id="b2Head4" style="left:273px; top:113px; width:46px"
+               contenteditable="true" spellcheck="false" data-default="評価">評価</div>
+          <div class="b2-cell head ed" id="b2Head5" style="left:321px; top:113px; width:44px"
                contenteditable="true" spellcheck="false" data-default="何回">何回</div>
 
           <!-- 記入行（1 行目は書き方の例。空欄のままでも構わない） -->
-          <div class="b2-cell ed" id="b2R1C1" style="left:13px;  top:133px; width:76px"
+          <div class="b2-cell ed" id="b2R1C1" style="left:13px; top:133px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="4/8 8:10">4/8 8:10</div>
-          <div class="b2-cell ed" id="b2R1C2" style="left:91px;  top:133px; width:76px"
+          <div class="b2-cell ed" id="b2R1C2" style="left:87px; top:133px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="堀北さん">堀北さん</div>
-          <div class="b2-cell ed" id="b2R1C3" style="left:169px; top:133px; width:138px"
+          <div class="b2-cell ed" id="b2R1C3" style="left:157px; top:133px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="電車で一緒に登校した">電車で一緒に登校した</div>
-          <div class="b2-cell ed" id="b2R1C4" style="left:309px; top:133px; width:56px"
+          <div class="b2-cell mid ed" id="b2R1C4" style="left:273px; top:133px; width:46px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default="◎">◎</div>
+          <div class="b2-cell ed" id="b2R1C5" style="left:321px; top:133px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="1回">1回</div>
 
-          <div class="b2-cell ed" id="b2R2C1" style="left:13px;  top:153px; width:76px"
+          <div class="b2-cell ed" id="b2R2C1" style="left:13px; top:153px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C2" style="left:91px;  top:153px; width:76px"
+          <div class="b2-cell ed" id="b2R2C2" style="left:87px; top:153px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C3" style="left:169px; top:153px; width:138px"
+          <div class="b2-cell ed" id="b2R2C3" style="left:157px; top:153px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C4" style="left:309px; top:153px; width:56px"
+          <div class="b2-cell mid ed" id="b2R2C4" style="left:273px; top:153px; width:46px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-
-          <div class="b2-cell ed" id="b2R3C1" style="left:13px;  top:173px; width:76px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C2" style="left:91px;  top:173px; width:76px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C3" style="left:169px; top:173px; width:138px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C4" style="left:309px; top:173px; width:56px"
+          <div class="b2-cell ed" id="b2R2C5" style="left:321px; top:153px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
 
-          <div class="b2-cell ed" id="b2R4C1" style="left:13px;  top:193px; width:76px"
+          <div class="b2-cell ed" id="b2R3C1" style="left:13px; top:173px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C2" style="left:91px;  top:193px; width:76px"
+          <div class="b2-cell ed" id="b2R3C2" style="left:87px; top:173px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C3" style="left:169px; top:193px; width:138px"
+          <div class="b2-cell ed" id="b2R3C3" style="left:157px; top:173px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C4" style="left:309px; top:193px; width:56px"
+          <div class="b2-cell mid ed" id="b2R3C4" style="left:273px; top:173px; width:46px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R3C5" style="left:321px; top:173px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
 
-          <div class="b2-cell ed" id="b2R5C1" style="left:13px;  top:213px; width:76px"
+          <div class="b2-cell ed" id="b2R4C1" style="left:13px; top:193px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R5C2" style="left:91px;  top:213px; width:76px"
+          <div class="b2-cell ed" id="b2R4C2" style="left:87px; top:193px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R5C3" style="left:169px; top:213px; width:138px"
+          <div class="b2-cell ed" id="b2R4C3" style="left:157px; top:193px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R5C4" style="left:309px; top:213px; width:56px"
+          <div class="b2-cell mid ed" id="b2R4C4" style="left:273px; top:193px; width:46px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C5" style="left:321px; top:193px; width:44px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+          <div class="b2-cell ed" id="b2R5C1" style="left:13px; top:213px; width:72px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C2" style="left:87px; top:213px; width:68px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C3" style="left:157px; top:213px; width:114px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell mid ed" id="b2R5C4" style="left:273px; top:213px; width:46px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R5C5" style="left:321px; top:213px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
 
         </div>
@@ -2622,6 +2638,10 @@
 
   function textOf(id) { return document.getElementById(id).textContent.trim(); }
 
+  /* 裏面 2 の表の作り。列が増えたら数字を上げる
+     （1 = 評価欄がなく、4 列目が「何回」だったころ） */
+  var BACK2_VERSION = 2;
+
   // 裏面 2 は欄が多いので { id: 文字 } の形でまとめて出し入れする
   function back2Texts() {
     var out = {};
@@ -2649,7 +2669,8 @@
       logo:   logoSourceData,
       logoMono: logoMono,
       theme:  themeColor,
-      back2:  back2Texts()
+      back2:  back2Texts(),
+      back2v: BACK2_VERSION
     };
 
     try {
@@ -2723,6 +2744,18 @@
 
     // 裏面 2（空欄で保存されている欄もそのまま空欄に戻す）
     if (data.back2 && typeof data.back2 === "object") {
+      // 評価欄がなかったころの保存内容は、4 列目の「何回」を 5 列目へ送る
+      if (data.back2v !== BACK2_VERSION) {
+        [1, 2, 3, 4, 5].forEach(function (r) {
+          var key = "b2R" + r + "C4";
+          data.back2["b2R" + r + "C5"] =
+            typeof data.back2[key] === "string" ? data.back2[key] : "";
+          delete data.back2[key];
+        });
+        delete data.back2.b2Head4;    // 見出しは「評価」「何回」を初期値に戻す
+        delete data.back2.b2Head5;
+      }
+
       back2Editables.forEach(function (el) {
         if (typeof data.back2[el.id] === "string") { el.textContent = data.back2[el.id]; }
       });
@@ -3175,11 +3208,11 @@
       ctx.fillRect(r.x + 1, r.y + 1, r.w, r.h);
     });
 
-    // 記入欄（見出しは中央、記入行は左寄せ。空欄はそのまま空欄で書き出す）
+    // 記入欄（見出しと評価は中央、ほかは左寄せ。空欄はそのまま空欄で書き出す）
     Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-cell"), function (el) {
       if (!el.textContent.trim()) { return; }
-      var head = el.classList.contains("head");
-      drawEl(ctx, el, cardBack2, head ? { align: "center", dx: 1 } : { dx: 4 });
+      var center = el.classList.contains("head") || el.classList.contains("mid");
+      drawEl(ctx, el, cardBack2, center ? { align: "center", dx: 1 } : { dx: 4 });
     });
 
     ctx.restore();   // クリップ解除
