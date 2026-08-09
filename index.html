@@ -386,6 +386,31 @@
     letter-spacing: 0.02em;
   }
 
+  /* 有効期限（証明文のすぐ下の小さな一行） */
+  .expiry-label {
+    position: absolute;
+    left: 126px;
+    top: 172px;
+    width: 40px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--c-label);
+    text-align: justify;
+    text-align-last: justify;
+  }
+
+  #valExpiry {
+    left: 172px;
+    top: 172px;
+    width: 140px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+  }
+
   /* バーコード */
   .barcode {
     position: absolute;
@@ -424,11 +449,9 @@
     overflow: hidden;
   }
 
-  /* 学校長印 */
-  .stamp {
+  /* 印（表面の学校長印と、裏面 2 の生徒印で共用） */
+  .seal {
     position: absolute;
-    left: 316px;
-    top: 178px;
     width: 36px;
     height: 36px;
     border: 1.8px solid #c0392b;
@@ -450,6 +473,9 @@
     letter-spacing: 0;
     overflow: hidden;
   }
+
+  .stamp   { left: 316px; top: 178px; }   /* 表面：学校長印 */
+  .b2-seal { left: 324px; top:  46px; }   /* 裏面 2：心構えの右下に押す生徒印 */
 
   .stamp-label {
     position: absolute;
@@ -482,7 +508,7 @@
   .ed:focus  { background: var(--c-tint); box-shadow: 0 0 0 2px rgba(var(--rgb-main), 0.32); }
 
   /* 印は丸のまま（.ed の角丸で上書きされないように） */
-  .stamp.ed { border-radius: 50%; }
+  .seal.ed { border-radius: 50%; }
 
   .ed-dark:hover { background: rgba(var(--rgb-on-main), 0.14); }
   .ed-dark:focus {
@@ -575,7 +601,7 @@
   .b2-item {
     position: absolute;
     left: 26px;
-    width: 340px;
+    width: 288px;   /* 右下の生徒印にかからない幅 */
     height: 14px;
     line-height: 14px;
     font-size: 10px;
@@ -1212,6 +1238,11 @@
           <div class="certify ed" id="certifyText" contenteditable="true" spellcheck="false"
                data-default="上記の者は当校の生徒であることを証明する。">上記の者は当校の生徒であることを証明する。</div>
 
+          <!-- 有効期限 -->
+          <div class="expiry-label" id="labExpiry">有効期限</div>
+          <div class="f-value" id="valExpiry" contenteditable="true" spellcheck="false"
+               data-default="2027年3月31日">2027年3月31日</div>
+
           <!-- バーコード -->
           <div class="barcode" id="barcode" aria-hidden="true"></div>
           <div class="barcode-caption" id="barcodeCaption">S01T004651</div>
@@ -1223,7 +1254,7 @@
             <div class="sl-line ed" id="stampRole" contenteditable="true" spellcheck="false"
                  data-default="学校長　印">学校長　印</div>
           </div>
-          <div class="stamp ed" id="stampEl" contenteditable="true" spellcheck="false"
+          <div class="seal stamp ed" id="stampEl" contenteditable="true" spellcheck="false"
                data-default="坂柳">坂柳</div>
         </div>
 
@@ -1259,6 +1290,10 @@
           <i class="b2-mk" style="left:15px; top:76px"></i>
           <div class="b2-item ed" id="b2Item4" style="top:72px" data-blank-ok contenteditable="true"
                spellcheck="false" data-default="自ら考え、自ら行動する。">自ら考え、自ら行動する。</div>
+
+          <!-- 心構えの右下に押す生徒の印 -->
+          <div class="seal b2-seal ed" id="b2Seal" contenteditable="true" spellcheck="false"
+               data-default="綾小路">綾小路</div>
 
           <div class="b2-split"></div>
 
@@ -1843,6 +1878,7 @@
     "frontTitle",     // 「学生証」の見出し
     "valName", "valRoman", "valId", "valClass", "valBirth",
     "certifyText",    // 「上記の者は…」の一文
+    "valExpiry",      // 有効期限
     "stampSchool",    // 印の脇書き（校名）
     "stampRole",      // 印の脇書き（役職）
     "stampEl",        // 印の名前
@@ -1860,13 +1896,18 @@
   var backSchool  = document.getElementById("backSchool");
 
   // 印は文字数に応じて字の大きさを変える（丸からはみ出さないように）
-  function fitStampFont() {
-    var n = stampEl.textContent.replace(/\s+/g, "").length || 1;
+  function fitSealFont(el) {
+    var n = el.textContent.replace(/\s+/g, "").length || 1;
     var size = n <= 1 ? 19 : (n === 2 ? 13 : (n === 3 ? 10 : 8));
     var padX = Math.max(0, (36 - 3.6 - size) / 2);   // 内側の幅＝1 文字ぶん
-    stampEl.style.fontSize   = size + "px";
-    stampEl.style.padding    = "1px " + padX + "px";
-    stampEl.style.lineHeight = (size * 1.05) + "px";
+    el.style.fontSize   = size + "px";
+    el.style.padding    = "1px " + padX + "px";
+    el.style.lineHeight = (size * 1.05) + "px";
+  }
+
+  // 学校長印と生徒印をまとめて整える
+  function fitStampFont() {
+    Array.prototype.forEach.call(document.querySelectorAll(".seal"), fitSealFont);
   }
 
   // 表面の脇書きと裏面の校名は同じものとして扱う
@@ -1889,7 +1930,7 @@
     });
 
     el.addEventListener("input", function () {
-      if (el === stampEl) { fitStampFont(); }
+      if (el.classList.contains("seal")) { fitSealFont(el); }
       if (el === stampSchool || el === backSchool) { syncSchoolName(el); }
       scheduleSave();
     });
@@ -1898,7 +1939,7 @@
       // data-blank-ok が付いた欄（裏面 2 の記入欄）は空のままにしておく
       if (el.textContent.trim() === "" && !el.hasAttribute("data-blank-ok")) {
         el.textContent = el.getAttribute("data-default");
-        if (el === stampEl) { fitStampFont(); }
+        if (el.classList.contains("seal")) { fitSealFont(el); }
         if (el === stampSchool || el === backSchool) { syncSchoolName(el); }
       }
       el.scrollLeft = 0;
@@ -2714,6 +2755,7 @@
       role:    textOf("stampRole"),
       stamp:   textOf("stampEl"),
       certify: textOf("certifyText"),
+      expiry:  textOf("valExpiry"),
       point:  currentPoint,
       photo:  photoData,
       logo:   logoSourceData,
@@ -2780,7 +2822,8 @@
 
     var map = { name: "valName", roman: "valRoman", sid: "valId",
                 cls: "valClass", birth: "valBirth", title: "frontTitle",
-                role: "stampRole", stamp: "stampEl", certify: "certifyText" };
+                role: "stampRole", stamp: "stampEl", certify: "certifyText",
+                expiry: "valExpiry" };
     Object.keys(map).forEach(function (key) {
       if (data[key]) { document.getElementById(map[key]).textContent = data[key]; }
     });
@@ -2789,8 +2832,6 @@
       stampSchool.textContent = data.school;
       backSchool.textContent  = data.school;
     }
-
-    fitStampFont();
 
     // 裏面 2（空欄で保存されている欄もそのまま空欄に戻す）
     if (data.back2 && typeof data.back2 === "object") {
@@ -2810,6 +2851,9 @@
         if (typeof data.back2[el.id] === "string") { el.textContent = data.back2[el.id]; }
       });
     }
+
+    // 学校長印と生徒印の両方を入れ終えてから、字の大きさを合わせる
+    fitStampFont();
 
     if (typeof data.theme === "string") { setTheme(data.theme, true); }
 
@@ -2971,6 +3015,35 @@
     });
   }
 
+  /* 丸い印を描く（表面の学校長印・裏面 2 の生徒印で共用）。
+     位置と字の大きさは画面の要素から取るので、見た目と一致する */
+  function drawSeal(ctx, el, root) {
+    var r = rectOf(el, root);
+    var chars = el.textContent.replace(/\s+/g, "").split("");
+    if (!chars.length) { return; }
+
+    ctx.save();
+    ctx.globalAlpha = 0.86;
+    ctx.translate(r.x + r.w / 2 + 1, r.y + r.h / 2 + 1);
+    ctx.rotate(-8 * Math.PI / 180);
+    ctx.strokeStyle = "#c0392b";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(0, 0, r.w / 2 - 0.9, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 画面と同じ字の大きさで縦に並べる
+    var chSize = styleOf(el).size;
+    var chGap  = chSize * 1.02;
+    var top    = -((chars.length - 1) * chGap) / 2;
+    chars.forEach(function (ch, idx) {
+      drawText(ctx, ch, 0, top + chGap * idx + chSize * 0.36, {
+        size: chSize, weight: "800", color: "#c0392b", align: "center"
+      });
+    });
+    ctx.restore();
+  }
+
   function roundRectPath(ctx, x, y, w, h, r) {
     r = Math.min(r, w / 2, h / 2);
     ctx.beginPath();
@@ -3085,8 +3158,10 @@
       ctx.fillRect(r.x + 1, r.y + 1, r.w, 1);
     });
 
-    // --- 証明文 ---
+    // --- 証明文・有効期限 ---
     drawEl(ctx, document.querySelector(".certify"), cardFront, { dx: 1 });
+    drawEl(ctx, document.getElementById("labExpiry"), cardFront, { dx: 1, justify: true });
+    drawEl(ctx, document.getElementById("valExpiry"), cardFront, { dx: 1 });
 
     // --- バーコード ---
     var bR = rectOf(barcodeEl, cardFront);
@@ -3118,29 +3193,7 @@
         drawEl(ctx, line, cardFront, { align: "right", dx: 1 });
       });
 
-    var sR = rectOf(stampEl, cardFront);
-    var chars = stampEl.textContent.replace(/\s+/g, "").split("");
-
-    ctx.save();
-    ctx.globalAlpha = 0.86;
-    ctx.translate(sR.x + sR.w / 2 + 1, sR.y + sR.h / 2 + 1);
-    ctx.rotate(-8 * Math.PI / 180);
-    ctx.strokeStyle = "#c0392b";
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.arc(0, 0, sR.w / 2 - 0.9, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // 画面と同じ字の大きさで縦に並べる
-    var chSize = styleOf(stampEl).size;
-    var chGap  = chSize * 1.02;
-    var top    = -((chars.length - 1) * chGap) / 2;
-    chars.forEach(function (ch, idx) {
-      drawText(ctx, ch, 0, top + chGap * idx + chSize * 0.36, {
-        size: chSize, weight: "800", color: "#c0392b", align: "center"
-      });
-    });
-    ctx.restore();
+    drawSeal(ctx, stampEl, cardFront);
 
     ctx.restore();   // クリップ解除
 
@@ -3235,6 +3288,9 @@
     Array.prototype.forEach.call(cardBack2.querySelectorAll(".b2-item"), function (el) {
       drawEl(ctx, el, cardBack2, { dx: 1 });
     });
+
+    // 心構えの右下に押す生徒印
+    drawSeal(ctx, document.getElementById("b2Seal"), cardBack2);
 
     // 上下段の区切り
     var split = rectOf(cardBack2.querySelector(".b2-split"), cardBack2);
