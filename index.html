@@ -32,6 +32,8 @@
     --c-deep:       #6f1d29;   /* 帯の下側・裏面の枠 */
     --c-deeper:     #661a26;   /* 裏面の下側 */
     --c-crest-bg:   #7a2130;   /* 裏面の校章の地色 */
+    --c-edge:       #7c2230;   /* 白地に乗る枠線・見出し（明るい色でも暗いまま） */
+    --c-on-main:    #ffffff;   /* 帯の上に乗せる文字（帯が明るいと濃色に変わる） */
 
     /* 文字 */
     --c-ink:        #2b2224;   /* 本文 */
@@ -89,6 +91,7 @@
     --rgb-pp-reset:   176, 154, 158;
     --rgb-pp-dark:     10, 5, 7;
     --rgb-pp-shadow:   40, 20, 24;
+    --rgb-on-main:    255, 255, 255;
   }
 
   /* ===================================================================
@@ -175,7 +178,7 @@
      =================================================================== */
   .card-front {
     background: #ffffff;
-    border: 1px solid var(--c-main);
+    border: 1px solid var(--c-edge);
   }
 
   /* 上部のえんじ色の帯 */
@@ -196,7 +199,7 @@
     height: 30px;
     line-height: 30px;
     text-align: center;
-    color: #ffffff;
+    color: var(--c-on-main);
     font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.34em;
@@ -235,7 +238,7 @@
     -webkit-user-select: none;
   }
 
-  .photo-area:active { border-color: var(--c-main); }
+  .photo-area:active { border-color: var(--c-edge); }
 
   .photo-area img {
     width: 100%;
@@ -481,10 +484,10 @@
   /* 印は丸のまま（.ed の角丸で上書きされないように） */
   .stamp.ed { border-radius: 50%; }
 
-  .ed-dark:hover { background: rgba(255, 255, 255, 0.14); }
+  .ed-dark:hover { background: rgba(var(--rgb-on-main), 0.14); }
   .ed-dark:focus {
-    background: rgba(255, 255, 255, 0.16);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
+    background: rgba(var(--rgb-on-main), 0.16);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-on-main), 0.55);
   }
 
   /* ===================================================================
@@ -512,7 +515,7 @@
     height: 22px;
     line-height: 22px;
     text-align: center;
-    color: #ffffff;
+    color: var(--c-on-main);
     font-size: 15px;
     font-weight: 800;
     letter-spacing: 0.18em;
@@ -527,7 +530,7 @@
      =================================================================== */
   .card-back2 {
     background: #ffffff;
-    border: 1px solid var(--c-main);
+    border: 1px solid var(--c-edge);
     transform: rotateY(180deg);
     visibility: hidden;
   }
@@ -553,7 +556,7 @@
     height: 26px;
     line-height: 26px;
     text-align: center;
-    color: #ffffff;
+    color: var(--c-on-main);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.22em;
@@ -565,7 +568,7 @@
     position: absolute;
     width: 5px;
     height: 5px;
-    background: var(--c-main);
+    background: var(--c-edge);
     transform: rotate(45deg);
   }
 
@@ -606,7 +609,7 @@
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.16em;
-    color: var(--c-main);
+    color: var(--c-edge);
     white-space: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
@@ -669,7 +672,7 @@
     font-weight: 700;
     font-family: inherit;
     letter-spacing: 0.08em;
-    color: var(--c-main);
+    color: var(--c-edge);
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid rgba(var(--rgb-main), 0.4);
     border-radius: 8px;
@@ -677,7 +680,7 @@
   }
 
   .side-tab.active {
-    color: #ffffff;
+    color: var(--c-on-main);
     background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 100%);
     border-color: var(--c-deep);
   }
@@ -706,7 +709,7 @@
     font-size: 11.5px;
     font-weight: 800;
     letter-spacing: 0.14em;
-    color: var(--c-main);
+    color: var(--c-edge);
   }
 
   .theme-now {
@@ -801,6 +804,7 @@
   .btn:disabled { opacity: 0.6; cursor: default; }
 
   .btn-photo {
+    color: var(--c-on-main);
     background: linear-gradient(180deg, var(--c-light) 0%, var(--c-main) 100%);
     border-color: var(--c-deep);
     box-shadow: 0 3px 8px rgba(var(--rgb-main), 0.28);
@@ -1093,7 +1097,7 @@
   }
 
   .hint { margin-top: 16px; }
-  .hint b { color: var(--c-main); }
+  .hint b { color: var(--c-edge); }
 
   .install-note {
     margin-top: 14px;
@@ -1109,7 +1113,7 @@
     margin-bottom: 3px;
     font-size: 11.5px;
     letter-spacing: 0.08em;
-    color: var(--c-main);
+    color: var(--c-edge);
   }
 
   .install-note code {
@@ -1117,7 +1121,7 @@
     padding: 0 4px;
     border-radius: 3px;
     background: rgba(var(--rgb-main), 0.1);
-    color: var(--c-main);
+    color: var(--c-edge);
     font-weight: 700;
   }
 
@@ -1389,8 +1393,9 @@
     </div>
 
     <p class="theme-note">
-      選んだ色の色相と鮮やかさだけを使い、明暗の並びはそのままにするので、
-      どの色でも学生証らしい見た目のまま全体の色合いが変わります。
+      右端の丸から好きな色を選べます。明るい色を選べば帯も明るくなり、
+      そのときは帯の文字と校章が自動で濃い色に変わって読めるままになります。
+      氏名や罫線などカードの中身は、読みやすさを保つため色味だけを合わせます。
     </p>
   </div>
 
@@ -1510,6 +1515,13 @@
      ================================================================= */
   var BASE_COLOR = "#7c2230";
   var BASE_SAT   = 0.5696;      // 基準色の彩度
+  var BASE_L     = 0.3098;      // 基準色の明るさ
+
+  /* 帯・枠・校章まわりの色。この 5 つだけは選んだ色の明るさに合わせて
+     上下し、明るい色を選べばそのまま明るいカードになる。
+     文字・罫線・用紙などの残りは、読みやすさを保つため明るさを変えず
+     色味だけを合わせる。 */
+  var BRAND = { main: 1, light: 1, deep: 1, deeper: 1, crestBg: 1 };
 
   /* 名前 : [彩度の比率, 明るさ] */
   var PALETTE_SPEC = {
@@ -1571,6 +1583,7 @@
   var CSS_VARS = {
     "--c-main": "main", "--c-light": "light", "--c-deep": "deep",
     "--c-deeper": "deeper", "--c-crest-bg": "crestBg",
+    "--c-edge": "edge", "--c-on-main": "onMain",
     "--c-ink": "ink", "--c-ink-strong": "inkStrong", "--c-label": "label",
     "--c-sub": "sub", "--c-cert": "cert", "--c-mute": "mute", "--c-mute2": "mute2",
     "--c-rule": "rule", "--c-frame": "frame", "--c-paper1": "paper1",
@@ -1587,7 +1600,8 @@
     "--rgb-main": "main", "--rgb-shadow": "shadow", "--rgb-exp": "exp2",
     "--rgb-bg-glow": "bgGlow", "--rgb-pp-scan": "ppScan", "--rgb-pp-line": "ppLine",
     "--rgb-pp-acc": "ppAcc", "--rgb-pp-reset": "ppReset",
-    "--rgb-pp-dark": "ppDark", "--rgb-pp-shadow": "ppShadow"
+    "--rgb-pp-dark": "ppDark", "--rgb-pp-shadow": "ppShadow",
+    "--rgb-on-main": "onMain"
   };
 
   function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
@@ -1629,20 +1643,56 @@
     }).join("");
   }
 
+  // 明るさの差が分かるよう、人の目の感じ方に合わせた明度で比べる
+  function relLuminance(rgb) {
+    var c = rgb.map(function (v) {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+
+  function contrastRatio(a, b) {
+    var l1 = relLuminance(a), l2 = relLuminance(b), t;
+    if (l1 < l2) { t = l1; l1 = l2; l2 = t; }
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+
   /* 選んだ色から全色を作る。返り値は
      { main: "#...", mainRgb: "124, 34, 48", ... } の形 */
   function buildPalette(hex) {
     var hsl = hexToHsl(hex) || hexToHsl(BASE_COLOR);
     var hue = hsl[0];
     var sat = hsl[1];
+    // 帯の明るさ。真っ白・真っ黒に振り切ると濃淡が作れないので少し余白を残す
+    var brandL = Math.max(0.12, Math.min(0.88, hsl[2]));
     var out = {};
 
     Object.keys(PALETTE_SPEC).forEach(function (key) {
       var spec = PALETTE_SPEC[key];
-      var rgb  = hslToRgb(hue, clamp01(spec[0] * sat), spec[1]);
+      // 帯まわりは基準色からの明暗差を保ったまま、選んだ明るさに乗せ換える
+      var l = BRAND[key]
+        ? Math.max(0.05, Math.min(0.95, brandL + spec[1] - BASE_L))
+        : spec[1];
+      var rgb = hslToRgb(hue, clamp01(spec[0] * sat), l);
       out[key] = rgbToHex(rgb);
       out[key + "Rgb"] = rgb.join(", ");
     });
+
+    /* 白地に乗る枠線や見出しは、明るい色を選んでも見えるように
+       明るさの上限を決めておく */
+    var edge = hslToRgb(hue, clamp01(sat), Math.min(brandL, 0.45));
+    out.edge = rgbToHex(edge);
+    out.edgeRgb = edge.join(", ");
+
+    /* 帯の上に乗せる文字は、白と濃色のうち帯とよく分かれるほうを使う。
+       淡い色を選んだときに白文字が読めなくなるのを防ぐ */
+    var mainRgb = hslToRgb(hue, clamp01(sat), brandL);
+    var dark    = hslToRgb(hue, clamp01(sat * 0.9), 0.13);
+    var onMain  = contrastRatio(mainRgb, [255, 255, 255]) >= contrastRatio(mainRgb, dark)
+      ? [255, 255, 255] : dark;
+    out.onMain = rgbToHex(onMain);
+    out.onMainRgb = onMain.join(", ");
 
     return out;
   }
@@ -2252,8 +2302,8 @@
 
   function refreshEmblems() {
     // 透かしは文字の読みやすさを優先して斜線を省く
-    paintCrestCanvas(document.getElementById("crestWatermark"), 156, P.main, "#ffffff", true);
-    paintCrestCanvas(document.getElementById("crestBack"), 160, "#ffffff", P.crestBg);
+    paintCrestCanvas(document.getElementById("crestWatermark"), 156, P.edge, "#ffffff", true);
+    paintCrestCanvas(document.getElementById("crestBack"), 160, P.onMain, P.crestBg);
     if (typeof buildAppIcons === "function") { buildAppIcons(); }
   }
 
@@ -2963,7 +3013,7 @@
     ctx.save();
     ctx.globalAlpha = 0.07;
     drawEmblem(ctx, wmR.x + wmR.w / 2 + 1, wmR.y + wmR.h / 2 + 1,
-                wmR.w, wmR.h, P.main, "#ffffff", true);
+                wmR.w, wmR.h, P.edge, "#ffffff", true);
     ctx.restore();
 
     // ヘッダーの帯
@@ -2975,7 +3025,7 @@
     ctx.fillRect(0, 0, CARD_W, 31);
 
     drawEl(ctx, document.getElementById("frontTitle"), cardFront, {
-      align: "center", color: "#ffffff", dx: 1
+      align: "center", color: P.onMain, dx: 1
     });
 
     // --- 写真 ---
@@ -3095,7 +3145,7 @@
     ctx.restore();   // クリップ解除
 
     // カードの枠
-    ctx.strokeStyle = P.main;
+    ctx.strokeStyle = P.edge;
     ctx.lineWidth = 1;
     roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
     ctx.stroke();
@@ -3121,14 +3171,14 @@
 
     var cR = rectOf(document.getElementById("crestBack"), cardBack);
     drawEmblem(ctx, cR.x + cR.w / 2 + 1, cR.y + cR.h / 2 + 1,
-                cR.w, cR.h, "#ffffff", P.crestBg);
+                cR.w, cR.h, P.onMain, P.crestBg);
 
     var schoolEl = document.querySelector(".back-school");
     var schoolR  = rectOf(schoolEl, cardBack);
     var schoolS  = styleOf(schoolEl);
     drawText(ctx, schoolEl.textContent.trim(), CARD_W / 2,
              schoolR.y + 1 + schoolR.h / 2 + schoolS.size * 0.36, {
-      size: schoolS.size, weight: "800", color: "#ffffff",
+      size: schoolS.size, weight: "800", color: P.onMain,
       spacing: schoolS.size * 0.18, align: "center"
     });
 
@@ -3167,7 +3217,7 @@
     ctx.fillRect(0, 0, CARD_W, band.h + 1);
 
     drawEl(ctx, document.getElementById("b2Title"), cardBack2, {
-      align: "center", color: "#ffffff", dx: 1
+      align: "center", color: P.onMain, dx: 1
     });
 
     // 心構えの見出し記号（45 度に傾けた小さな四角）
@@ -3176,7 +3226,7 @@
       ctx.save();
       ctx.translate(r.x + r.w / 2 + 1, r.y + r.h / 2 + 1);
       ctx.rotate(Math.PI / 4);
-      ctx.fillStyle = P.main;
+      ctx.fillStyle = P.edge;
       ctx.fillRect(-r.w / 2, -r.h / 2, r.w, r.h);
       ctx.restore();
     });
@@ -3218,7 +3268,7 @@
     ctx.restore();   // クリップ解除
 
     // カードの枠
-    ctx.strokeStyle = P.main;
+    ctx.strokeStyle = P.edge;
     ctx.lineWidth = 1;
     roundRectPath(ctx, 0.5, 0.5, CARD_W - 1, CARD_H - 1, 10);
     ctx.stroke();
@@ -3335,11 +3385,11 @@
 
     // マスカブルは外周を切られてもよいよう内側に描く
     var inner = size * (maskable ? 0.56 : 0.68);
-    var logo = getLogoFor("#ffffff");
+    var logo = getLogoFor(P.onMain);
     if (logo) {
       drawLogoFit(ctx, logo, size / 2, size / 2, inner, inner);
     } else {
-      drawCrest(ctx, size / 2, size / 2, inner, "#ffffff", size / 160, P.crestBg);
+      drawCrest(ctx, size / 2, size / 2, inner, P.onMain, size / 160, P.crestBg);
     }
 
     return canvas.toDataURL("image/png");
