@@ -474,8 +474,7 @@
     overflow: hidden;
   }
 
-  .stamp   { left: 316px; top: 178px; }   /* 表面：学校長印 */
-  .b2-seal { left: 324px; top:  46px; }   /* 裏面 2：心構えの右下に押す生徒印 */
+  .stamp { left: 316px; top: 178px; }   /* 表面：学校長印 */
 
   .stamp-label {
     position: absolute;
@@ -601,9 +600,9 @@
   .b2-item {
     position: absolute;
     left: 26px;
-    width: 288px;   /* 右下の生徒印にかからない幅 */
-    height: 14px;
-    line-height: 14px;
+    width: 340px;
+    height: 13px;
+    line-height: 13px;
     font-size: 10px;
     font-weight: 600;
     color: var(--c-cert);
@@ -614,11 +613,77 @@
 
   .b2-item::-webkit-scrollbar { display: none; }
 
+  /* 心構えを守る旨の一文と、その右の署名欄 */
+  .b2-pledge {
+    position: absolute;
+    left: 14px;
+    top: 85px;
+    width: 190px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 8.5px;
+    font-weight: 600;
+    color: var(--c-cert);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .b2-pledge::-webkit-scrollbar { display: none; }
+
+  .b2-sign-label {
+    position: absolute;
+    left: 208px;
+    top: 85px;
+    width: 22px;
+    height: 12px;
+    line-height: 12px;
+    font-size: 8.5px;
+    font-weight: 700;
+    color: var(--c-label);
+    text-align: justify;
+    text-align-last: justify;
+  }
+
+  /* 署名は明朝体をわずかに傾けて、手で書いたように見せる */
+  #b2Sign {
+    position: absolute;
+    left: 232px;
+    top: 82px;
+    width: 134px;
+    height: 15px;
+    line-height: 15px;
+    text-align: center;
+    font-family: "Yu Mincho", YuMincho, "Hiragino Mincho ProN", "ヒラギノ明朝 ProN",
+                 "Noto Serif JP", "Times New Roman", serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1b2b4b;            /* 万年筆の藍黒インク */
+    letter-spacing: 0.04em;
+    transform: rotate(-2deg);
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  #b2Sign::-webkit-scrollbar { display: none; }
+
+  /* 署名の下線（編集不可） */
+  .b2-signline {
+    position: absolute;
+    left: 232px;
+    top: 98px;
+    width: 134px;
+    height: 1px;
+    background: var(--c-frame);
+  }
+
   /* 中段の区切り */
   .b2-split {
     position: absolute;
     left: 12px;
-    top: 88px;
+    top: 103px;
     width: 354px;
     height: 1px;
     background: var(--c-rule);
@@ -628,10 +693,10 @@
   .b2-rec-title {
     position: absolute;
     left: 12px;
-    top: 94px;
+    top: 105px;
     width: 354px;
-    height: 16px;
-    line-height: 16px;
+    height: 15px;
+    line-height: 15px;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.16em;
@@ -657,8 +722,8 @@
 
   .b2-cell {
     position: absolute;
-    height: 19px;
-    line-height: 19px;
+    height: 17px;
+    line-height: 17px;
     padding: 0 3px;
     font-size: 9px;
     color: var(--c-ink);
@@ -1275,25 +1340,29 @@
           <div class="b2-band-title ed ed-dark" id="b2Title" contenteditable="true"
                spellcheck="false" data-default="生徒としての心構え">生徒としての心構え</div>
 
-          <i class="b2-mk" style="left:15px; top:34px"></i>
-          <div class="b2-item ed" id="b2Item1" style="top:30px" data-blank-ok contenteditable="true"
+          <i class="b2-mk" style="left:15px; top:32px"></i>
+          <div class="b2-item ed" id="b2Item1" style="top:28px" data-blank-ok contenteditable="true"
                spellcheck="false" data-default="実力こそが評価のすべてであると心得る。">実力こそが評価のすべてであると心得る。</div>
 
-          <i class="b2-mk" style="left:15px; top:48px"></i>
-          <div class="b2-item ed" id="b2Item2" style="top:44px" data-blank-ok contenteditable="true"
+          <i class="b2-mk" style="left:15px; top:45px"></i>
+          <div class="b2-item ed" id="b2Item2" style="top:41px" data-blank-ok contenteditable="true"
                spellcheck="false" data-default="礼節を重んじ、級友と協力する。">礼節を重んじ、級友と協力する。</div>
 
-          <i class="b2-mk" style="left:15px; top:62px"></i>
-          <div class="b2-item ed" id="b2Item3" style="top:58px" data-blank-ok contenteditable="true"
+          <i class="b2-mk" style="left:15px; top:58px"></i>
+          <div class="b2-item ed" id="b2Item3" style="top:54px" data-blank-ok contenteditable="true"
                spellcheck="false" data-default="時間を守り、遅刻・欠席をしない。">時間を守り、遅刻・欠席をしない。</div>
 
-          <i class="b2-mk" style="left:15px; top:76px"></i>
-          <div class="b2-item ed" id="b2Item4" style="top:72px" data-blank-ok contenteditable="true"
+          <i class="b2-mk" style="left:15px; top:71px"></i>
+          <div class="b2-item ed" id="b2Item4" style="top:67px" data-blank-ok contenteditable="true"
                spellcheck="false" data-default="自ら考え、自ら行動する。">自ら考え、自ら行動する。</div>
 
-          <!-- 心構えの右下に押す生徒の印 -->
-          <div class="seal b2-seal ed" id="b2Seal" contenteditable="true" spellcheck="false"
-               data-default="綾小路">綾小路</div>
+          <!-- 心構えを守る旨の一文と、生徒本人の署名 -->
+          <div class="b2-pledge ed" id="b2Pledge" contenteditable="true" spellcheck="false"
+               data-default="上記の心構えを遵守することを誓います。">上記の心構えを遵守することを誓います。</div>
+          <div class="b2-sign-label">署名</div>
+          <div class="b2-signline"></div>
+          <div id="b2Sign" class="ed" data-blank-ok contenteditable="true" spellcheck="false"
+               data-default="綾小路 清隆">綾小路 清隆</div>
 
           <div class="b2-split"></div>
 
@@ -1302,78 +1371,78 @@
                spellcheck="false" data-default="通学方法記録">通学方法記録</div>
 
           <!-- 見出し行の下地 -->
-          <div class="b2-head-bg" style="left:12px; top:112px; width:354px; height:20px"></div>
+          <div class="b2-head-bg" style="left:12px; top:122px; width:354px; height:18px"></div>
 
           <!-- 表の枠線（編集不可） -->
-          <div class="b2-grid" style="left:12px;  top:112px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:132px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:152px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:172px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:192px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:122px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:140px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:158px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:176px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px;  top:194px; width:354px; height:1px"></div>
           <div class="b2-grid" style="left:12px;  top:212px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px;  top:232px; width:354px; height:1px"></div>
-          <div class="b2-grid" style="left:12px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:86px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:156px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:272px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:320px; top:112px; width:1px; height:121px"></div>
-          <div class="b2-grid" style="left:366px; top:112px; width:1px; height:121px"></div>
+          <div class="b2-grid" style="left:12px;  top:230px; width:354px; height:1px"></div>
+          <div class="b2-grid" style="left:12px; top:122px; width:1px; height:109px"></div>
+          <div class="b2-grid" style="left:86px; top:122px; width:1px; height:109px"></div>
+          <div class="b2-grid" style="left:156px; top:122px; width:1px; height:109px"></div>
+          <div class="b2-grid" style="left:272px; top:122px; width:1px; height:109px"></div>
+          <div class="b2-grid" style="left:320px; top:122px; width:1px; height:109px"></div>
+          <div class="b2-grid" style="left:366px; top:122px; width:1px; height:109px"></div>
 
           <!-- 見出し行 -->
-          <div class="b2-cell head ed" id="b2Head1" style="left:13px; top:113px; width:72px"
+          <div class="b2-cell head ed" id="b2Head1" style="left:13px; top:123px; width:72px"
                contenteditable="true" spellcheck="false" data-default="日時">日時</div>
-          <div class="b2-cell head ed" id="b2Head2" style="left:87px; top:113px; width:68px"
+          <div class="b2-cell head ed" id="b2Head2" style="left:87px; top:123px; width:68px"
                contenteditable="true" spellcheck="false" data-default="誰と">誰と</div>
-          <div class="b2-cell head ed" id="b2Head3" style="left:157px; top:113px; width:114px"
+          <div class="b2-cell head ed" id="b2Head3" style="left:157px; top:123px; width:114px"
                contenteditable="true" spellcheck="false" data-default="どうした">どうした</div>
-          <div class="b2-cell head ed" id="b2Head4" style="left:273px; top:113px; width:46px"
+          <div class="b2-cell head ed" id="b2Head4" style="left:273px; top:123px; width:46px"
                contenteditable="true" spellcheck="false" data-default="評価">評価</div>
-          <div class="b2-cell head ed" id="b2Head5" style="left:321px; top:113px; width:44px"
+          <div class="b2-cell head ed" id="b2Head5" style="left:321px; top:123px; width:44px"
                contenteditable="true" spellcheck="false" data-default="何回">何回</div>
 
           <!-- 記入行（1 行目は書き方の例。空欄のままでも構わない） -->
-          <div class="b2-cell ed" id="b2R1C1" style="left:13px; top:133px; width:72px"
+          <div class="b2-cell ed" id="b2R1C1" style="left:13px; top:141px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="4/8 8:10">4/8 8:10</div>
-          <div class="b2-cell ed" id="b2R1C2" style="left:87px; top:133px; width:68px"
+          <div class="b2-cell ed" id="b2R1C2" style="left:87px; top:141px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="堀北さん">堀北さん</div>
-          <div class="b2-cell ed" id="b2R1C3" style="left:157px; top:133px; width:114px"
+          <div class="b2-cell ed" id="b2R1C3" style="left:157px; top:141px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="電車で一緒に登校した">電車で一緒に登校した</div>
-          <div class="b2-cell mid ed" id="b2R1C4" style="left:273px; top:133px; width:46px"
+          <div class="b2-cell mid ed" id="b2R1C4" style="left:273px; top:141px; width:46px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="◎">◎</div>
-          <div class="b2-cell ed" id="b2R1C5" style="left:321px; top:133px; width:44px"
+          <div class="b2-cell ed" id="b2R1C5" style="left:321px; top:141px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default="1回">1回</div>
 
-          <div class="b2-cell ed" id="b2R2C1" style="left:13px; top:153px; width:72px"
+          <div class="b2-cell ed" id="b2R2C1" style="left:13px; top:159px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C2" style="left:87px; top:153px; width:68px"
+          <div class="b2-cell ed" id="b2R2C2" style="left:87px; top:159px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C3" style="left:157px; top:153px; width:114px"
+          <div class="b2-cell ed" id="b2R2C3" style="left:157px; top:159px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell mid ed" id="b2R2C4" style="left:273px; top:153px; width:46px"
+          <div class="b2-cell mid ed" id="b2R2C4" style="left:273px; top:159px; width:46px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R2C5" style="left:321px; top:153px; width:44px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-
-          <div class="b2-cell ed" id="b2R3C1" style="left:13px; top:173px; width:72px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C2" style="left:87px; top:173px; width:68px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C3" style="left:157px; top:173px; width:114px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell mid ed" id="b2R3C4" style="left:273px; top:173px; width:46px"
-               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R3C5" style="left:321px; top:173px; width:44px"
+          <div class="b2-cell ed" id="b2R2C5" style="left:321px; top:159px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
 
-          <div class="b2-cell ed" id="b2R4C1" style="left:13px; top:193px; width:72px"
+          <div class="b2-cell ed" id="b2R3C1" style="left:13px; top:177px; width:72px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C2" style="left:87px; top:193px; width:68px"
+          <div class="b2-cell ed" id="b2R3C2" style="left:87px; top:177px; width:68px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C3" style="left:157px; top:193px; width:114px"
+          <div class="b2-cell ed" id="b2R3C3" style="left:157px; top:177px; width:114px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell mid ed" id="b2R4C4" style="left:273px; top:193px; width:46px"
+          <div class="b2-cell mid ed" id="b2R3C4" style="left:273px; top:177px; width:46px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
-          <div class="b2-cell ed" id="b2R4C5" style="left:321px; top:193px; width:44px"
+          <div class="b2-cell ed" id="b2R3C5" style="left:321px; top:177px; width:44px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+
+          <div class="b2-cell ed" id="b2R4C1" style="left:13px; top:195px; width:72px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C2" style="left:87px; top:195px; width:68px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C3" style="left:157px; top:195px; width:114px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell mid ed" id="b2R4C4" style="left:273px; top:195px; width:46px"
+               data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
+          <div class="b2-cell ed" id="b2R4C5" style="left:321px; top:195px; width:44px"
                data-blank-ok contenteditable="true" spellcheck="false" data-default=""></div>
 
           <div class="b2-cell ed" id="b2R5C1" style="left:13px; top:213px; width:72px"
@@ -1535,6 +1604,10 @@
   var FONT_FAMILY = '"Hiragino Kaku Gothic ProN", "Yu Gothic", YuGothic, ' +
                     'Meiryo, "Noto Sans JP", sans-serif';
   var MONO_FAMILY = '"SFMono-Regular", Menlo, Consolas, "Courier New", monospace';
+  // 署名用（#b2Sign の font-family / transform と同じにしておく）
+  var SIGN_FAMILY = '"Yu Mincho", YuMincho, "Hiragino Mincho ProN", ' +
+                    '"Noto Serif JP", "Times New Roman", serif';
+  var SIGN_TILT   = -2;   // 度
 
   var cardFront = document.getElementById("cardFront");
   var cardBack  = document.getElementById("cardBack");
@@ -3289,8 +3362,26 @@
       drawEl(ctx, el, cardBack2, { dx: 1 });
     });
 
-    // 心構えの右下に押す生徒印
-    drawSeal(ctx, document.getElementById("b2Seal"), cardBack2);
+    // 心構えを守る旨の一文と、その右の署名欄
+    drawEl(ctx, document.getElementById("b2Pledge"), cardBack2, { dx: 1 });
+    drawEl(ctx, cardBack2.querySelector(".b2-sign-label"), cardBack2, { dx: 1, justify: true });
+
+    var signLine = rectOf(cardBack2.querySelector(".b2-signline"), cardBack2);
+    ctx.fillStyle = P.frame;
+    ctx.fillRect(signLine.x + 1, signLine.y + 1, signLine.w, signLine.h);
+
+    // 署名は画面と同じだけ傾けて描く
+    var sign  = document.getElementById("b2Sign");
+    var signR = rectOf(sign, cardBack2);
+    var signS = styleOf(sign);
+    ctx.save();
+    ctx.translate(signR.x + signR.w / 2 + 1, signR.y + signR.h / 2 + 1);
+    ctx.rotate(SIGN_TILT * Math.PI / 180);
+    drawText(ctx, sign.textContent.trim(), 0, signS.size * 0.36, {
+      size: signS.size, weight: signS.weight, color: signS.color,
+      spacing: signS.spacing, family: SIGN_FAMILY, align: "center"
+    });
+    ctx.restore();
 
     // 上下段の区切り
     var split = rectOf(cardBack2.querySelector(".b2-split"), cardBack2);
